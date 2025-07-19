@@ -252,10 +252,10 @@ export default function AdminDashboard() {
             {/* Welcome Section */}
             <div className="mb-2">
               <h1 className="text-3xl font-bold tracking-tight">
-                Welcome back, {session?.user?.name || 'Admin'}
+                Bienvenido, {session?.user?.name || 'Admin'}
               </h1>
               <p className="text-muted-foreground">
-                Here's what's happening with your store today.
+                Aquí tienes un resumen de lo que está pasando en tu tienda hoy.
               </p>
             </div>
 
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
               {/* Total Revenue */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center">
                     <TrendingUp className="h-3 w-3 mr-1" />
-                    +{((dashboardData.metrics.revenue.today / dashboardData.metrics.revenue.total) * 100).toFixed(1)}% from yesterday
+                    {formatCurrency(dashboardData.metrics.revenue.today)} hoy
                   </p>
                 </CardContent>
               </Card>
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
               {/* Total Orders */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
                   <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center">
                     <Activity className="h-3 w-3 mr-1" />
-                    {dashboardData.metrics.orders.today} today
+                    {dashboardData.metrics.orders.today} hoy
                   </p>
                 </CardContent>
               </Card>
@@ -298,7 +298,7 @@ export default function AdminDashboard() {
               {/* Products */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Products</CardTitle>
+                  <CardTitle className="text-sm font-medium">Productos</CardTitle>
                   <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center">
                     <AlertTriangle className="h-3 w-3 mr-1" />
-                    {dashboardData.metrics.products.lowStock} low stock
+                    {dashboardData.metrics.products.lowStock} poco stock
                   </p>
                 </CardContent>
               </Card>
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
               {/* Customers */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Customers</CardTitle>
+                  <CardTitle className="text-sm font-medium">Clientes</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center">
                     <Plus className="h-3 w-3 mr-1" />
-                    {dashboardData.metrics.users.newThisMonth} this month
+                    {dashboardData.metrics.users.newThisMonth} este mes
                   </p>
                 </CardContent>
               </Card>
@@ -338,43 +338,53 @@ export default function AdminDashboard() {
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <ShoppingCart className="h-5 w-5" />
-                      Recent Orders
+                      Pedidos Recientes
                     </CardTitle>
                     <Link href="/admin/orders">
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-2" />
-                        View All
+                        Ver Todos
                       </Button>
                     </Link>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {dashboardData.recentOrders.slice(0, 5).map((order) => (
-                        <div key={order.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <p className="font-medium">{order.orderNumber}</p>
-                              <Badge className={`${getStatusColor(order.status)} text-xs font-medium border`}>
-                                {order.status}
-                              </Badge>
+                    {dashboardData.recentOrders.length > 0 ? (
+                      <div className="space-y-4">
+                        {dashboardData.recentOrders.slice(0, 5).map((order) => (
+                          <div key={order.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <p className="font-medium">{order.orderNumber}</p>
+                                <Badge className={`${getStatusColor(order.status)} text-xs font-medium border`}>
+                                  {order.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {order.customerName || order.customerEmail}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {order.itemCount} {order.itemCount === 1 ? 'artículo' : 'artículos'}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              {order.customerName || order.customerEmail}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {order.itemCount} items
-                            </p>
+                            <div className="text-right">
+                              <p className="font-semibold text-lg">{formatCurrency(order.total)}</p>
+                              <p className="text-xs text-muted-foreground flex items-center justify-end">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {new Date(order.createdAt).toLocaleDateString('es-ES')}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-lg">{formatCurrency(order.total)}</p>
-                            <p className="text-xs text-muted-foreground flex items-center justify-end">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No hay pedidos aún</h3>
+                        <p className="text-muted-foreground text-sm max-w-sm">
+                          Los pedidos aparecerán aquí cuando los clientes empiecen a comprar
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -383,54 +393,70 @@ export default function AdminDashboard() {
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5" />
-                      Top Products
+                      Productos Más Vendidos
                     </CardTitle>
                     <Link href="/admin/products">
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-2" />
-                        View All
+                        Ver Todos
                       </Button>
                     </Link>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {dashboardData.topProducts.slice(0, 5).map((product, index) => (
-                        <div key={index} className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
-                          <img 
-                            src={product.image1} 
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded-lg border"
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatCurrency(product.price)}
-                            </p>
+                    {dashboardData.topProducts.length > 0 ? (
+                      <div className="space-y-4">
+                        {dashboardData.topProducts.slice(0, 5).map((product, index) => (
+                          <div key={index} className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
+                            <img 
+                              src={product.image1 || '/placeholder.svg'} 
+                              alt={product.name}
+                              className="w-12 h-12 object-cover rounded-lg border"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg'
+                              }}
+                            />
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{product.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(product.price)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{product.totalSold}</p>
+                              <p className="text-xs text-muted-foreground">vendidos</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{product.totalSold}</p>
-                            <p className="text-xs text-muted-foreground">sold</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No hay ventas aún</h3>
+                        <p className="text-muted-foreground text-sm max-w-sm">
+                          Los productos más vendidos aparecerán aquí después de las primeras ventas
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
 
               {/* Quick Actions */}
               <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+                <h2 className="text-xl font-semibold mb-4">Acciones Rápidas</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Link href="/admin/orders">
                     <Card className="hover:bg-accent transition-colors cursor-pointer group">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
                           <ShoppingCart className="h-6 w-6" />
-                          Manage Orders
+                          Gestionar Pedidos
                         </CardTitle>
                         <CardDescription>
-                          {dashboardData.metrics.orders.pending} pending orders
+                          {dashboardData.metrics.orders.pending > 0 
+                            ? `${dashboardData.metrics.orders.pending} pedidos pendientes`
+                            : 'No hay pedidos pendientes'
+                          }
                         </CardDescription>
                       </CardHeader>
                     </Card>
@@ -441,10 +467,13 @@ export default function AdminDashboard() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
                           <Package className="h-6 w-6" />
-                          Manage Products
+                          Gestionar Productos
                         </CardTitle>
                         <CardDescription>
-                          {dashboardData.metrics.products.lowStock} need attention
+                          {dashboardData.metrics.products.lowStock > 0 
+                            ? `${dashboardData.metrics.products.lowStock} productos con poco stock`
+                            : 'Stock en buen estado'
+                          }
                         </CardDescription>
                       </CardHeader>
                     </Card>
@@ -455,10 +484,10 @@ export default function AdminDashboard() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
                           <Users className="h-6 w-6" />
-                          Manage Users
+                          Gestionar Usuarios
                         </CardTitle>
                         <CardDescription>
-                          {dashboardData.metrics.users.total} total customers
+                          {dashboardData.metrics.users.total} {dashboardData.metrics.users.total === 1 ? 'cliente total' : 'clientes totales'}
                         </CardDescription>
                       </CardHeader>
                     </Card>

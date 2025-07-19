@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import {
-  BarChart3,
-  Package,
+  LayoutDashboard,
   ShoppingCart,
+  Package,
   Users,
-  Settings2,
-  Home,
+  CreditCard,
+  BarChart3,
+  Settings,
   Store,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -42,11 +43,11 @@ const getAdminData = (user: any) => ({
     {
       title: "Dashboard",
       url: "/admin",
-      icon: Home,
+      icon: LayoutDashboard,
       isActive: true,
     },
     {
-      title: "Órdenes",
+      title: "Ordenes",
       url: "/admin/orders",
       icon: ShoppingCart,
     },
@@ -61,61 +62,22 @@ const getAdminData = (user: any) => ({
       icon: Users,
     },
     {
-      title: "Gestión",
-      url: "#",
+      title: "Pagos",
+      url: "/admin/payments",
+      icon: CreditCard,
+    },
+    {
+      title: "Analytics",
+      url: "/admin/analytics",
       icon: BarChart3,
-      items: [
-        {
-          title: "Inventario",
-          url: "/admin/inventory",
-        },
-        {
-          title: "Reportes",
-          url: "/admin/reports",
-        },
-        {
-          title: "Analytics",
-          url: "/admin/analytics",
-        },
-      ],
     },
     {
       title: "Configuración",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "/admin/settings",
-        },
-        {
-          title: "Emails",
-          url: "/admin/settings/emails",
-        },
-        {
-          title: "Pagos",
-          url: "/admin/settings/payments",
-        },
-      ],
+      url: "/admin/settings",
+      icon: Settings,
     },
   ],
-  projects: [
-    {
-      name: "Métricas Ventas",
-      url: "/admin/sales",
-      icon: BarChart3,
-    },
-    {
-      name: "Gestión Stock",
-      url: "/admin/inventory",
-      icon: Package,
-    },
-    {
-      name: "Base Clientes",
-      url: "/admin/customers",
-      icon: Users,
-    },
-  ],
+  projects: [],
 })
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
