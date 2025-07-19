@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(rm:*)",
+      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
+      "Bash(cp:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(stripe version)",
+      "Bash(git push:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(find:*)",
+      "Bash(pnpm install:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_cXmGb72OJaWt@ep-long-dust-aessi7e0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" npx prisma db push)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_cXmGb72OJaWt@ep-long-dust-aessi7e0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" npx ts-node prisma/seed-admin.ts)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_cXmGb72OJaWt@ep-long-dust-aessi7e0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" node prisma/seed-admin.ts)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_cXmGb72OJaWt@ep-long-dust-aessi7e0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" npx prisma studio)",
+      "Bash(npx shadcn add:*)",
+      "Bash(mv:*)",
+      "Bash(npm run:*)"
+    ],
+    "deny": []
+  }
+}
