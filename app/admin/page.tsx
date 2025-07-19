@@ -5,6 +5,21 @@ import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 import { 
   ShoppingCart, 
   DollarSign, 
@@ -12,8 +27,10 @@ import {
   Users, 
   TrendingUp,
   AlertTriangle,
-  Clock,
-  CheckCircle
+  Activity,
+  Calendar,
+  Eye,
+  Plus
 } from "lucide-react"
 import Link from "next/link"
 
@@ -92,28 +109,92 @@ export default function AdminDashboard() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground font-medium">Cargando dashboard...</p>
-        </div>
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 data-[orientation=vertical]:h-4"
+                />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/admin">
+                        Admin Panel
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <div className="grid auto-rows-min gap-4 md:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="aspect-video rounded-xl bg-muted/50 animate-pulse" />
+                ))}
+              </div>
+              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min animate-pulse" />
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{error}</p>
-            <Button onClick={fetchDashboardData} className="mt-4">
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 data-[orientation=vertical]:h-4"
+                />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/admin">
+                        Admin Panel
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Error
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">{error}</p>
+                  <Button onClick={fetchDashboardData}>
+                    Reintentar
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
@@ -122,13 +203,13 @@ export default function AdminDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-500'
-      case 'CONFIRMED': return 'bg-blue-500'
-      case 'PROCESSING': return 'bg-orange-500'
-      case 'SHIPPED': return 'bg-purple-500'
-      case 'DELIVERED': return 'bg-green-500'
-      case 'CANCELLED': return 'bg-red-500'
-      default: return 'bg-black'
+      case 'PENDING': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+      case 'CONFIRMED': return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+      case 'PROCESSING': return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+      case 'SHIPPED': return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+      case 'DELIVERED': return 'bg-green-500/10 text-green-500 border-green-500/20'
+      case 'CANCELLED': return 'bg-red-500/10 text-red-500 border-red-500/20'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -140,199 +221,254 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Bienvenido, {session?.user?.name || session?.user?.email}</p>
-        </div>
-
-        {/* Métricas principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Órdenes Totales</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{dashboardData.metrics.orders.total}</div>
-              <p className="text-xs text-muted-foreground">
-                {dashboardData.metrics.orders.today} hoy
+    <div className="dark">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="/admin">
+                      Admin Panel
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+          </header>
+          
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+            {/* Welcome Section */}
+            <div className="mb-2">
+              <h1 className="text-3xl font-bold tracking-tight">
+                Welcome back, {session?.user?.name || 'Admin'}
+              </h1>
+              <p className="text-muted-foreground">
+                Here's what's happening with your store today.
               </p>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos Totales</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">
-                {formatCurrency(dashboardData.metrics.revenue.total)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {formatCurrency(dashboardData.metrics.revenue.today)} hoy
-              </p>
-            </CardContent>
-          </Card>
+            {/* Main Metrics Grid */}
+            <div className="grid auto-rows-min gap-4 md:grid-cols-4 mb-4">
+              {/* Total Revenue */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(dashboardData.metrics.revenue.total)}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    +{((dashboardData.metrics.revenue.today / dashboardData.metrics.revenue.total) * 100).toFixed(1)}% from yesterday
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Productos</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{dashboardData.metrics.products.total}</div>
-              <p className="text-xs text-muted-foreground">
-                {dashboardData.metrics.products.lowStock} con poco stock
-              </p>
-            </CardContent>
-          </Card>
+              {/* Total Orders */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {dashboardData.metrics.orders.total}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                    <Activity className="h-3 w-3 mr-1" />
+                    {dashboardData.metrics.orders.today} today
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Usuarios</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">{dashboardData.metrics.users.total}</div>
-              <p className="text-xs text-muted-foreground">
-                {dashboardData.metrics.users.newThisMonth} este mes
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+              {/* Products */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Products</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {dashboardData.metrics.products.total}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    {dashboardData.metrics.products.lowStock} low stock
+                  </p>
+                </CardContent>
+              </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Órdenes recientes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-foreground">
-                Órdenes Recientes
-                <Link href="/admin/orders">
-                  <Button variant="outline" size="sm">Ver todas</Button>
-                </Link>
-              </CardTitle>
-            </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardData.recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">{order.orderNumber}</p>
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-white ${getStatusColor(order.status)}`}
-                      >
-                        {order.status}
-                      </Badge>
+              {/* Customers */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Customers</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {dashboardData.metrics.users.total}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center">
+                    <Plus className="h-3 w-3 mr-1" />
+                    {dashboardData.metrics.users.newThisMonth} this month
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Content Grid */}
+            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-6">
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Recent Orders */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5" />
+                      Recent Orders
+                    </CardTitle>
+                    <Link href="/admin/orders">
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View All
+                      </Button>
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {dashboardData.recentOrders.slice(0, 5).map((order) => (
+                        <div key={order.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <p className="font-medium">{order.orderNumber}</p>
+                              <Badge className={`${getStatusColor(order.status)} text-xs font-medium border`}>
+                                {order.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {order.customerName || order.customerEmail}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {order.itemCount} items
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-lg">{formatCurrency(order.total)}</p>
+                            <p className="text-xs text-muted-foreground flex items-center justify-end">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {order.customerName || order.customerEmail}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {order.itemCount} productos
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-foreground">{formatCurrency(order.total)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
+                  </CardContent>
+                </Card>
+
+                {/* Top Products */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Top Products
+                    </CardTitle>
+                    <Link href="/admin/products">
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View All
+                      </Button>
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {dashboardData.topProducts.slice(0, 5).map((product, index) => (
+                        <div key={index} className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
+                          <img 
+                            src={product.image1} 
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg border"
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatCurrency(product.price)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{product.totalSold}</p>
+                            <p className="text-xs text-muted-foreground">sold</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Link href="/admin/orders">
+                    <Card className="hover:bg-accent transition-colors cursor-pointer group">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
+                          <ShoppingCart className="h-6 w-6" />
+                          Manage Orders
+                        </CardTitle>
+                        <CardDescription>
+                          {dashboardData.metrics.orders.pending} pending orders
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
+
+                  <Link href="/admin/products">
+                    <Card className="hover:bg-accent transition-colors cursor-pointer group">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
+                          <Package className="h-6 w-6" />
+                          Manage Products
+                        </CardTitle>
+                        <CardDescription>
+                          {dashboardData.metrics.products.lowStock} need attention
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
+
+                  <Link href="/admin/users">
+                    <Card className="hover:bg-accent transition-colors cursor-pointer group">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3 group-hover:text-primary transition-colors">
+                          <Users className="h-6 w-6" />
+                          Manage Users
+                        </CardTitle>
+                        <CardDescription>
+                          {dashboardData.metrics.users.total} total customers
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
                 </div>
-              ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-          {/* Productos más vendidos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-foreground">
-                Productos Más Vendidos
-                <Link href="/admin/products">
-                  <Button variant="outline" size="sm">Ver todos</Button>
-                </Link>
-              </CardTitle>
-            </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardData.topProducts.map((product, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
-                  <img 
-                    src={product.image1} 
-                    alt={product.name}
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrency(product.price)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-foreground">{product.totalSold} vendidos</p>
-                    <p className="text-xs text-muted-foreground">
-                      {product.orderCount} órdenes
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-            </Card>
-        </div>
-
-        {/* Accesos rápidos */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Accesos Rápidos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/admin/orders">
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <ShoppingCart className="h-5 w-5" />
-                    Gestionar Órdenes
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    {dashboardData.metrics.orders.pending} órdenes pendientes
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-
-            <Link href="/admin/products">
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Package className="h-5 w-5" />
-                    Gestionar Productos
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    {dashboardData.metrics.products.lowStock} productos con poco stock
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-
-            <Link href="/admin/users">
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Users className="h-5 w-5" />
-                    Gestionar Usuarios
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    {dashboardData.metrics.users.total} usuarios registrados
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
           </div>
-        </div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }

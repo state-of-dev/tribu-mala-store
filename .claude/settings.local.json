@@ -29,7 +29,8 @@
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_cXmGb72OJaWt@ep-long-dust-aessi7e0-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" npx prisma studio)",
       "Bash(npx shadcn add:*)",
       "Bash(mv:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:ui.shadcn.com)"
     ],
     "deny": []
   }

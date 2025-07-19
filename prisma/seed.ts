@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -192,6 +193,25 @@ async function main() {
   })
 
   console.log('✅ Test user created:', testUser.email)
+
+  // Create super admin user with properly hashed password
+  const hashedPassword = await hash("admin123", 12)
+  const superAdmin = await prisma.user.create({
+    data: {
+      email: "admin@sdfm2520.com",
+      name: "Super Admin",
+      password: hashedPassword,
+      role: "SUPER_ADMIN",
+      address: "Admin HQ",
+      city: "Admin City",
+      zip: "00000",
+      country: "US",
+    },
+  })
+
+  console.log('✅ Super admin created:', superAdmin.email)
+  console.log('📧 Email: admin@sdfm2520.com')
+  console.log('🔑 Password: admin123')
 
   console.log('🎉 Database seeded successfully!')
 }
