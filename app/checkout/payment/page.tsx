@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCart } from "@/context/cart-context"
 import { Button } from "@/components/ui/button"
@@ -111,7 +111,7 @@ function PaymentForm({ clientSecret, orderNumber }: { clientSecret: string, orde
   )
 }
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const clientSecret = searchParams.get("client_secret")
@@ -197,5 +197,20 @@ export default function PaymentPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-20 pb-12 px-4 bg-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-4" />
+          <p className="text-white">Cargando información de pago...</p>
+        </div>
+      </div>
+    }>
+      <PaymentPageContent />
+    </Suspense>
   )
 }
