@@ -9,14 +9,6 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "No autorizado" },
-        { status: 401 }
-      )
-    }
-
     const { id } = params
 
     if (!id) {
@@ -26,14 +18,33 @@ export async function GET(
       )
     }
 
-    console.log("🔍 Buscando orden con ID:", id)
+    console.log("🔍 Buscando orden:", id)
 
-    // Buscar la orden por ID y verificar que pertenezca al usuario
-    const order = await prisma.order.findFirst({
-      where: {
+    // Determinar si es ID (CUID) o orderNumber (SDM-*)
+    const isOrderNumber = id.startsWith('SDM-')
+    
+    let whereClause: any = {}
+    
+    if (isOrderNumber) {
+      // Si es orderNumber, buscar por orderNumber (acceso público para éxito de pago)
+      whereClause = { orderNumber: id }
+    } else {
+      // Si es ID, requiere autenticación y verificar que pertenezca al usuario
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { success: false, error: "No autorizado" },
+          { status: 401 }
+        )
+      }
+      whereClause = { 
         id: id,
-        userId: session.user.id
-      },
+        userId: session.user.id 
+      }
+    }
+
+    // Buscar la orden
+    const order = await prisma.order.findFirst({
+      where: whereClause,
       include: {
         items: {
           include: {
@@ -64,9 +75,11 @@ export async function GET(
     }
 
     console.log("✅ Orden encontrada:", {
+      id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
-      paymentStatus: order.paymentStatus
+      paymentStatus: order.paymentStatus,
+      accessType: isOrderNumber ? 'orderNumber' : 'userID'
     })
 
     // Formatear la orden para el frontend
