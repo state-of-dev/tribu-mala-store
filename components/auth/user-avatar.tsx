@@ -1,11 +1,24 @@
 "use client"
 
-import { useState } from "react"
 import { useAuthStatus } from "@/hooks/use-auth-status"
 import { UserAvatarProps } from "@/types/navigation"
 import { LogoutButton } from "./logout-button"
 import { Button } from "@/components/ui/button"
-import { User, Settings, ShoppingBag, ChevronDown } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import { User, Settings, ShoppingBag, ChevronDown, CreditCard, Bell, LogOut } from "lucide-react"
 import Link from "next/link"
 
 export function UserAvatar({ 
@@ -14,12 +27,11 @@ export function UserAvatar({
   size = "md" 
 }: UserAvatarProps) {
   const { user } = useAuthStatus()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const sizeClasses = {
-    sm: "h-8 w-8 text-xs",
-    md: "h-10 w-10 text-sm", 
-    lg: "h-12 w-12 text-base"
+    sm: "h-8 w-8",
+    md: "h-10 w-10", 
+    lg: "h-12 w-12"
   }
 
   const getInitials = (name?: string | null, email?: string | null): string => {
@@ -43,79 +55,80 @@ export function UserAvatar({
 
   const initials = getInitials(user.name, user.email)
 
+  if (!showDropdown) {
+    return (
+      <Avatar className={`${sizeClasses[size]} ${className}`}>
+        <AvatarImage src={user.image || ""} alt={user.name || "Usuario"} />
+        <AvatarFallback>{initials}</AvatarFallback>
+      </Avatar>
+    )
+  }
+
   return (
-    <div className={`relative ${className}`}>
-      <Button
-        variant="ghost"
-        className={`${sizeClasses[size]} rounded-full p-0 hover:bg-dark-700 ${showDropdown ? 'group' : ''}`}
-        onClick={() => showDropdown && setIsDropdownOpen(!isDropdownOpen)}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className={`${sizeClasses[size]} rounded-full p-0 ${className}`}>
+          <Avatar className={sizeClasses[size]}>
+            <AvatarImage src={user.image || ""} alt={user.name || "Usuario"} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-64 bg-background border"
+        side="bottom"
+        align="end"
+        sideOffset={4}
       >
-        {user.image ? (
-          <img
-            src={user.image}
-            alt={user.name || "Usuario"}
-            className={`${sizeClasses[size]} rounded-full object-cover`}
-          />
-        ) : (
-          <div className={`${sizeClasses[size]} rounded-full bg-blue-600 flex items-center justify-center text-white font-medium`}>
-            {initials}
-          </div>
-        )}
-        {showDropdown && (
-          <ChevronDown className="ml-2 h-3 w-3 text-gray-400 group-hover:text-gray-300" />
-        )}
-      </Button>
-
-      {showDropdown && isDropdownOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setIsDropdownOpen(false)}
-          />
-          
-          {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-64 bg-dark-800 border border-dark-600 rounded-lg shadow-xl z-20">
-            {/* User Info */}
-            <div className="p-4 border-b border-dark-600">
-              <p className="font-medium text-gray-200">{user.name || "Usuario"}</p>
-              <p className="text-sm text-gray-400 truncate">{user.email}</p>
-            </div>
-
-            {/* Menu Items */}
-            <div className="py-2">
-              <Link 
-                href="/profile" 
-                className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-dark-700"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <User className="mr-3 h-4 w-4" />
-                Mi Perfil
-              </Link>
-              
-              <Link 
-                href="/orders" 
-                className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-dark-700"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <ShoppingBag className="mr-3 h-4 w-4" />
-                Mis Pedidos
-              </Link>
-            </div>
-
-            {/* Logout */}
-            <div className="py-2 border-t border-dark-600">
-              <div className="px-4">
-                <LogoutButton 
-                  variant="ghost" 
-                  size="sm"
-                  className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                />
-              </div>
+        <DropdownMenuLabel className="p-0 font-normal">
+          <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user.image || ""} alt={user.name || "Usuario"} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">{user.name || "Usuario"}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
             </div>
           </div>
-        </>
-      )}
-    </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <User className="mr-2 h-4 w-4" />
+              Mi Perfil
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/orders">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Mis Pedidos
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/payment-methods">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Métodos de Pago
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/notifications">
+              <Bell className="mr-2 h-4 w-4" />
+              Notificaciones
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <LogOut className="mr-2 h-4 w-4" />
+          <LogoutButton 
+            variant="ghost" 
+            size="sm"
+            className="p-0 h-auto font-normal text-inherit hover:bg-transparent"
+          />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

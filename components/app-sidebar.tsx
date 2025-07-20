@@ -30,7 +30,7 @@ const getAdminData = (user: any) => ({
   user: {
     name: user?.name || "Admin User",
     email: user?.email || "admin@example.com",
-    avatar: user?.image || "/avatars/admin.jpg",
+    avatar: user?.image || "/placeholder-user.jpg",
   },
   teams: [
     {

@@ -6,8 +6,33 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Search, Filter, Eye, UserPlus } from "lucide-react"
-import Link from "next/link"
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { 
+  Users, 
+  Search, 
+  Filter, 
+  Eye, 
+  UserPlus,
+  Crown,
+  ShoppingCart,
+  DollarSign,
+  Calendar,
+  AlertTriangle
+} from "lucide-react"
 
 interface UserStats {
   totalOrders: number
@@ -90,11 +115,11 @@ export default function AdminUsers() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'SUPER_ADMIN':
-        return <Badge className="bg-purple-500 text-white">Super Admin</Badge>
+        return <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">Super Admin</Badge>
       case 'ADMIN':
-        return <Badge className="bg-blue-500 text-white">Admin</Badge>
+        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Admin</Badge>
       case 'CUSTOMER':
-        return <Badge variant="outline">Cliente</Badge>
+        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Cliente</Badge>
       default:
         return <Badge variant="secondary">{role}</Badge>
     }
@@ -107,196 +132,270 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-            <p className="mt-4 text-black">Cargando usuarios...</p>
-          </div>
-        </div>
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Usuarios</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <div className="grid auto-rows-min gap-4 md:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="aspect-video rounded-xl bg-muted/50 animate-pulse" />
+                ))}
+              </div>
+              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min animate-pulse" />
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{error}</p>
-            <Button onClick={fetchUsers} className="mt-4">
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Usuarios</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Error
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">{error}</p>
+                  <Button onClick={fetchUsers}>
+                    Reintentar
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Dashboard
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold text-black">Gestión de Usuarios</h1>
-        </div>
-        
-        {/* Filtros */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black h-4 w-4" />
-              <Input
-                placeholder="Buscar por email o nombre..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 placeholder:text-black"
-              />
+    <div className="dark">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Usuarios</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
             </div>
-          </div>
+          </header>
           
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[200px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por rol" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los roles</SelectItem>
-              <SelectItem value="CUSTOMER">Clientes</SelectItem>
-              <SelectItem value="ADMIN">Administradores</SelectItem>
-              <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+            <div className="mb-2">
+              <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
+              <p className="text-muted-foreground">
+                Administra todos los usuarios registrados en tu tienda
+              </p>
+            </div>
 
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{usersData?.pagination.total || 0}</div>
-            <p className="text-sm text-black">Total usuarios</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {usersData?.users.filter(u => u.role === 'CUSTOMER').length || 0}
-            </div>
-            <p className="text-sm text-black">Clientes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {usersData?.users.filter(u => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length || 0}
-            </div>
-            <p className="text-sm text-black">Administradores</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {usersData?.users.filter(u => u.stats.totalOrders > 0).length || 0}
-            </div>
-            <p className="text-sm text-black">Con compras</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Lista de usuarios */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Usuarios ({filteredUsers.length})</CardTitle>
-          <CardDescription className="text-black">
-            Gestiona todos los usuarios registrados en la tienda
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-black">No se encontraron usuarios</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredUsers.map((user) => (
-                <div key={user.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-black">{user.name || 'Sin nombre'}</h3>
-                        {getRoleBadge(user.role)}
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-black">
-                        <div>
-                          <span className="font-medium">Email:</span>
-                          <br />
-                          {user.email}
-                        </div>
-                        <div>
-                          <span className="font-medium">Ubicación:</span>
-                          <br />
-                          {user.city && user.country ? `${user.city}, ${user.country}` : 'No especificada'}
-                        </div>
-                        <div>
-                          <span className="font-medium">Registro:</span>
-                          <br />
-                          {formatDate(user.createdAt)}
-                        </div>
-                        <div>
-                          <span className="font-medium">Última actividad:</span>
-                          <br />
-                          {formatDate(user.updatedAt)}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Perfil
-                    </Button>
-                  </div>
-                  
-                  {/* Estadísticas de compras */}
-                  <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-medium text-black mb-2">Estadísticas de Compras</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                      <div className="text-center p-3 border border-black rounded">
-                        <div className="text-lg font-bold text-blue-600">{user.stats.totalOrders}</div>
-                        <div className="text-black">Órdenes totales</div>
-                      </div>
-                      <div className="text-center p-3 border border-black rounded">
-                        <div className="text-lg font-bold text-green-600">{user.stats.paidOrders}</div>
-                        <div className="text-black">Órdenes pagadas</div>
-                      </div>
-                      <div className="text-center p-3 border border-black rounded">
-                        <div className="text-lg font-bold text-purple-600">{formatCurrency(user.stats.totalSpent)}</div>
-                        <div className="text-black">Total gastado</div>
-                      </div>
-                      <div className="text-center p-3 border border-black rounded">
-                        <div className="text-lg font-bold text-orange-600">
-                          {user.stats.lastOrder ? formatDate(user.stats.lastOrder.date) : 'Nunca'}
-                        </div>
-                        <div className="text-black">Última compra</div>
-                      </div>
-                    </div>
-                  </div>
+            {/* Filtros */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por email o nombre..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              ))}
+              </div>
+              
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrar por rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los roles</SelectItem>
+                  <SelectItem value="CUSTOMER">Clientes</SelectItem>
+                  <SelectItem value="ADMIN">Administradores</SelectItem>
+                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Métricas de Usuarios */}
+            <div className="grid auto-rows-min gap-4 md:grid-cols-4 mb-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{usersData?.pagination.total || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Usuarios registrados
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Clientes</CardTitle>
+                  <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {usersData?.users.filter(u => u.role === 'CUSTOMER').length || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Usuarios con rol cliente
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Administradores</CardTitle>
+                  <Crown className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {usersData?.users.filter(u => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Usuarios con permisos admin
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Con Compras</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {usersData?.users.filter(u => u.stats.totalOrders > 0).length || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Usuarios que han comprado
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lista de usuarios */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Lista de Usuarios ({filteredUsers.length})
+                </CardTitle>
+                <Button variant="outline" size="sm">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Añadir Usuario
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {filteredUsers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No se encontraron usuarios</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm">
+                      {searchTerm || roleFilter !== 'all' 
+                        ? 'Intenta ajustar los filtros de búsqueda'
+                        : 'Los usuarios aparecerán aquí cuando se registren en la tienda'
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredUsers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-medium">{user.name || 'Sin nombre'}</p>
+                            {getRoleBadge(user.role)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            {user.email}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Registro: {formatDate(user.createdAt)}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <ShoppingCart className="h-3 w-3" />
+                              {user.stats.totalOrders} pedidos
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              {formatCurrency(user.stats.totalSpent)}
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Perfil
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }
