@@ -1,6 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -43,6 +45,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAdminProducts } from "@/hooks/use-cached-fetch"
 
 interface Product {
   id: number
@@ -69,37 +72,20 @@ interface ProductsData {
 }
 
 export default function AdminProducts() {
-  const [productsData, setProductsData] = useState<ProductsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
 
-  useEffect(() => {
-    fetchProducts()
-  }, [activeFilter])
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      if (activeFilter !== 'all') params.set('isActive', activeFilter)
-      
-      const response = await fetch(`/api/admin/products?${params}`)
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar productos')
-      }
-      
-      const data = await response.json()
-      setProductsData(data)
-    } catch (error) {
-      console.error('Error:', error)
-      setError(error instanceof Error ? error.message : 'Error desconocido')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Usar el hook optimizado con cache
+  const { 
+    data: productsData, 
+    loading, 
+    error, 
+    refetch: fetchProducts,
+    invalidateCache 
+  } = useAdminProducts({
+    isActive: activeFilter !== 'all' ? activeFilter : undefined
+  })
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -120,11 +106,19 @@ export default function AdminProducts() {
     return 'bg-green-500/10 text-green-500 border-green-500/20'
   }
 
-  const filteredProducts = productsData?.products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) || []
+  // Memoizar el filtrado para evitar recálculos innecesarios
+  const filteredProducts = useMemo(() => {
+    if (!productsData?.products) return []
+    
+    if (!searchTerm) return productsData.products
+    
+    const searchLower = searchTerm.toLowerCase()
+    return productsData.products.filter(product =>
+      product.name.toLowerCase().includes(searchLower) ||
+      (product.description && product.description.toLowerCase().includes(searchLower)) ||
+      (product.category && product.category.toLowerCase().includes(searchLower))
+    )
+  }, [productsData?.products, searchTerm])
 
   if (loading) {
     return (
@@ -279,7 +273,10 @@ export default function AdminProducts() {
                   <Download className="h-4 w-4 mr-2" />
                   Exportar
                 </Button>
-                <Button size="sm">
+                <Button 
+                  size="sm"
+                  onClick={() => router.push('/admin/products/new')}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Producto
                 </Button>
@@ -348,10 +345,13 @@ export default function AdminProducts() {
                         className="rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors overflow-hidden"
                       >
                         <div className="aspect-square relative">
-                          <img 
+                          <Image 
                             src={product.image1} 
                             alt={product.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={false}
                           />
                           {product.isFeatured && (
                             <div className="absolute top-2 right-2">
@@ -397,11 +397,19 @@ export default function AdminProducts() {
                           
                           <div className="flex items-center justify-between pt-2">
                             <div className="flex gap-2">
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => router.push(`/admin/products/${product.id}`)}
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 Ver
                               </Button>
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => router.push(`/admin/products/${product.id}/edit`)}
+                              >
                                 <Edit className="h-4 w-4 mr-1" />
                                 Editar
                               </Button>

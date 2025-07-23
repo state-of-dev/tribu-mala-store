@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { DashboardPreloader } from "@/components/dashboard-preloader"
 
 export default function AdminLayout({
   children,
@@ -40,5 +41,10 @@ export default function AdminLayout({
     return null
   }
 
-  return children
+  return (
+    <>
+      <DashboardPreloader />
+      {children}
+    </>
+  )
 }

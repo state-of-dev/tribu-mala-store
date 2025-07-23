@@ -121,7 +121,6 @@ export function UserAvatar({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive focus:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
           <LogoutButton 
             variant="ghost" 
             size="sm"

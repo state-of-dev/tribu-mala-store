@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -121,3 +121,6 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
     </Card>
   )
 }
+
+// Memoizar el componente para evitar re-renders innecesarios
+export default memo(HoodieCard)
