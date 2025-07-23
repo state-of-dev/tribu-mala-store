@@ -50,8 +50,8 @@ export function SplashScreen() {
     >
       <div className="relative w-48 h-48 mb-8">
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo%20sdfm-gDlxg0zxe6wVV9o5cISteykVa4LQhz.png"
-          alt="SDFM 2520"
+          src="/logo-tribu.png"
+          alt="Tribu Mala"
           fill
           className="object-contain"
           priority
@@ -59,7 +59,7 @@ export function SplashScreen() {
       </div>
 
       {/* Matrix-style loading text */}
-      <div className="font-mono text-white mb-4 h-6">{`LOADING_SYSTEM: ${matrixText}`}</div>
+      <div className="font-mono text-white mb-4 h-6">{`TRIBU_MALA: ${matrixText}`}</div>
 
       {/* Progress bar container */}
       <div className="w-64 h-1 bg-dark-400 rounded-full overflow-hidden">
