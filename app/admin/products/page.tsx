@@ -133,7 +133,7 @@ export default function AdminProducts() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
+                      <BreadcrumbLink href="/admin">Panel de Administración</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>
@@ -170,7 +170,7 @@ export default function AdminProducts() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
+                      <BreadcrumbLink href="/admin">Panel de Administración</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>

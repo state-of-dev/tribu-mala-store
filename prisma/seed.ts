@@ -213,6 +213,25 @@ async function main() {
   console.log('📧 Email: admin@sdfm2520.com')
   console.log('🔑 Password: admin123')
 
+  // Create Charlot admin user
+  const charlotPassword = await hash("charlot123", 12)
+  const charlotAdmin = await prisma.user.create({
+    data: {
+      email: "charlot@tribumala.com",
+      name: "Charlot Admin",
+      password: charlotPassword,
+      role: "ADMIN",
+      address: "Tribu Mala HQ",
+      city: "Barcelona",
+      zip: "08001",
+      country: "ES",
+    },
+  })
+
+  console.log('✅ Charlot admin created:', charlotAdmin.email)
+  console.log('📧 Email: charlot@tribumala.com')
+  console.log('🔑 Password: charlot123')
+
   console.log('🎉 Database seeded successfully!')
 }
 

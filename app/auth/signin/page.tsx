@@ -53,7 +53,7 @@ export default function SignInPage() {
       <div className="max-w-md mx-auto bg-dark-800 p-8 rounded-lg">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold mb-2">Iniciar Sesión</h1>
-          <p className="text-gray-400">Accede a tu cuenta de SDFM 2520</p>
+          <p className="text-gray-400">Accede a tu cuenta de Tribu Mala</p>
         </div>
 
         {error && (

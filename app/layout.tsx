@@ -15,8 +15,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SDFM 2520 - Premium Hoodies",
-  description: "Premium streetwear and comfortable hoodies",
+  title: "Tribu Mala - Streetwear Premium | Ropa Underground de Calidad",
+  description: "Streetwear premium para la nueva generación rebelde. Calidad superior, estilo underground, actitud sin límites.",
     generator: 'v0.dev'
 }
 
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"
@@ -61,7 +61,7 @@ export default function RootLayout({
             
             <footer className="w-full py-6 px-4 bg-dark-600 text-gray-400">
               <div className="container mx-auto text-center">
-                <p>&copy; 2025 SDFM 2520. All rights reserved.</p>
+                <p>&copy; 2025 Tribu Mala. Streetwear Premium. Todos los derechos reservados.</p>
               </div>
             </footer>
             <CustomCursor />

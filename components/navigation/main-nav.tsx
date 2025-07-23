@@ -21,8 +21,8 @@ export function MainNav({ className }: MainNavProps) {
           <div className="flex items-center space-x-3">
             <Logo />
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-white">SDFM 2520</h1>
-              <p className="text-xs text-gray-400">Premium Streetwear</p>
+              <h1 className="text-xl font-bold text-white">Tribu Mala</h1>
+              <p className="text-xs text-gray-400">Streetwear Premium</p>
             </div>
           </div>
 

@@ -98,7 +98,7 @@ export default function SignUpPage() {
       <div className="max-w-md mx-auto bg-dark-800 p-8 rounded-lg">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold mb-2">Crear Cuenta</h1>
-          <p className="text-gray-400">Únete a la comunidad SDFM 2520</p>
+          <p className="text-gray-400">Únete a la comunidad Tribu Mala</p>
         </div>
 
         {error && (

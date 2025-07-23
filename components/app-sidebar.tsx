@@ -36,18 +36,18 @@ const getAdminData = (user: any) => ({
     {
       name: "Tribu Mala Store",
       logo: Store,
-      plan: "Admin Panel",
+      plan: "Panel de Administración",
     },
   ],
   navMain: [
     {
-      title: "Dashboard",
+      title: "Panel Principal",
       url: "/admin",
       icon: LayoutDashboard,
       isActive: true,
     },
     {
-      title: "Ordenes",
+      title: "Órdenes",
       url: "/admin/orders",
       icon: ShoppingCart,
     },
@@ -67,7 +67,7 @@ const getAdminData = (user: any) => ({
       icon: CreditCard,
     },
     {
-      title: "Analytics",
+      title: "Analíticas",
       url: "/admin/analytics",
       icon: BarChart3,
     },

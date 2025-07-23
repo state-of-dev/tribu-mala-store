@@ -47,11 +47,11 @@ export function AutoSliderBanner() {
       ))}
       <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-gray-100 text-center mb-4">
-          Premium Streetwear
+          Streetwear Premium
         </h1>
-        <p className="text-xl text-gray-300 text-center mb-8">Elevate Your Style</p>
+        <p className="text-xl text-gray-300 text-center mb-8">Eleva Tu Estilo</p>
         <Button onClick={handleShopClick} size="lg" variant="outline">
-          SHOP
+          ÚNETE A LA TRIBU
         </Button>
       </div>
     </div>
