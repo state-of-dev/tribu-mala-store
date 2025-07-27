@@ -118,7 +118,7 @@ export default function PaymentsPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
@@ -341,7 +341,7 @@ export default function PaymentsPage() {
                           <p className="font-semibold text-lg">{formatCurrency(payment.total)}</p>
                           <p className="text-xs text-muted-foreground flex items-center justify-end">
                             <Calendar className="h-3 w-3 mr-1" />
-                            {new Date(payment.createdAt).toLocaleDateString('es-ES')}
+                            {new Date(payment.createdAt).toLocaleDateString('es-MX')}
                           </p>
                         </div>
                       </div>

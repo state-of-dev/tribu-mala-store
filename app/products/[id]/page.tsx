@@ -112,7 +112,7 @@ export default function ProductDetail() {
   ].filter(Boolean) : []
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)

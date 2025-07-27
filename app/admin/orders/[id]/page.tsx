@@ -163,14 +163,14 @@ export default function AdminOrderDetail() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('es-ES')
+    return new Date(date).toLocaleString('es-MX')
   }
 
   if (loading) {

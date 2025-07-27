@@ -42,7 +42,7 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
   const isLowStock = stock > 0 && stock <= 5
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)

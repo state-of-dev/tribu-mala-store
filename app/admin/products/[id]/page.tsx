@@ -90,14 +90,14 @@ export default function ViewProduct({ params }: { params: { id: string } }) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
   }
 
   const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

@@ -102,14 +102,14 @@ export default function AdminUsers() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES')
+    return new Date(date).toLocaleDateString('es-MX')
   }
 
   const getRoleBadge = (role: string) => {

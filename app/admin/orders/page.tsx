@@ -121,7 +121,7 @@ export default function AdminOrders() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
@@ -371,7 +371,7 @@ export default function AdminOrders() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              <span>{new Date(order.createdAt).toLocaleDateString('es-ES')}</span>
+                              <span>{new Date(order.createdAt).toLocaleDateString('es-MX')}</span>
                             </div>
                           </div>
                         </div>

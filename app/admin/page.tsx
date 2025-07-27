@@ -214,7 +214,7 @@ export default function AdminDashboard() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
@@ -370,7 +370,7 @@ export default function AdminDashboard() {
                               <p className="font-semibold text-lg">{formatCurrency(order.total)}</p>
                               <p className="text-xs text-muted-foreground flex items-center justify-end">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {new Date(order.createdAt).toLocaleDateString('es-ES')}
+                                {new Date(order.createdAt).toLocaleDateString('es-MX')}
                               </p>
                             </div>
                           </div>

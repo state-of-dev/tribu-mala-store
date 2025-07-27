@@ -47,7 +47,7 @@ export function CartDrawer() {
                   </div>
                   <div className="flex-grow">
                     <h3 className="font-medium text-foreground">{item.name}</h3>
-                    <p className="text-muted-foreground">{new Intl.NumberFormat('es-ES', {
+                    <p className="text-muted-foreground">{new Intl.NumberFormat('es-MX', {
                       style: 'currency',
                       currency: 'MXN'
                     }).format(item.price)}</p>
@@ -76,7 +76,7 @@ export function CartDrawer() {
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex justify-between mb-4 text-foreground">
                 <span>Total</span>
-                <span className="font-bold">{new Intl.NumberFormat('es-ES', {
+                <span className="font-bold">{new Intl.NumberFormat('es-MX', {
                   style: 'currency',
                   currency: 'MXN'
                 }).format(totalPrice)}</span>

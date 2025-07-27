@@ -253,7 +253,7 @@ export function generateOrderConfirmationEmail(data: OrderConfirmationData) {
         </div>
         <div>
           <p class="text-sm text-muted">Fecha</p>
-          <p class="font-semibold">${new Date().toLocaleDateString('es-ES', {
+          <p class="font-semibold">${new Date().toLocaleDateString('es-MX', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'

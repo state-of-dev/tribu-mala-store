@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {new Intl.NumberFormat('es-ES', {
+                    {new Intl.NumberFormat('es-MX', {
                       style: 'currency',
                       currency: 'MXN'
                     }).format(mockAnalytics.sales.averageOrder)}
