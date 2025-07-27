@@ -431,7 +431,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="price">Precio (€) *</Label>
+                        <Label htmlFor="price">Precio ($MXN) *</Label>
                         <Input
                           id="price"
                           type="number"
@@ -691,7 +691,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                       <div className="mt-3">
                         <h3 className="font-semibold line-clamp-1">{formData.name || 'Nombre del producto'}</h3>
                         <p className="text-lg font-bold text-primary">
-                          {formData.price ? `€${formData.price}` : '€0.00'}
+                          {formData.price ? `${formData.price}` : '$0 MXN.00'}
                         </p>
                       </div>
                     </CardContent>

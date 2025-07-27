@@ -49,7 +49,7 @@ export function CartDrawer() {
                     <h3 className="font-medium text-foreground">{item.name}</h3>
                     <p className="text-muted-foreground">{new Intl.NumberFormat('es-ES', {
                       style: 'currency',
-                      currency: 'EUR'
+                      currency: 'MXN'
                     }).format(item.price)}</p>
                     <div className="flex items-center mt-2">
                       <button
@@ -78,7 +78,7 @@ export function CartDrawer() {
                 <span>Total</span>
                 <span className="font-bold">{new Intl.NumberFormat('es-ES', {
                   style: 'currency',
-                  currency: 'EUR'
+                  currency: 'MXN'
                 }).format(totalPrice)}</span>
               </div>
               <Button onClick={handleCheckout} className="w-full">

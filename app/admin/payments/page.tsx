@@ -120,7 +120,7 @@ export default function PaymentsPage() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'MXN'
     }).format(amount)
   }
 

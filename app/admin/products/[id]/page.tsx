@@ -92,7 +92,7 @@ export default function ViewProduct({ params }: { params: { id: string } }) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'MXN'
     }).format(amount)
   }
 

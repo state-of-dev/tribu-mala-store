@@ -33,7 +33,8 @@
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(git stash:*)",
       "Bash(true)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

@@ -114,7 +114,7 @@ export default function ProductDetail() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'MXN'
     }).format(amount)
   }
 
@@ -302,7 +302,7 @@ export default function ProductDetail() {
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <Truck className="h-4 w-4 text-muted-foreground" />
-              <span>Envío gratis en pedidos superiores a 50€</span>
+              <span>Envío gratis en pedidos superiores a $500 MXN</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <RotateCcw className="h-4 w-4 text-muted-foreground" />

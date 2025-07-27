@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
                   <div className="text-2xl font-bold">
                     {new Intl.NumberFormat('es-ES', {
                       style: 'currency',
-                      currency: 'EUR'
+                      currency: 'MXN'
                     }).format(mockAnalytics.sales.averageOrder)}
                   </div>
                   <p className="text-xs text-muted-foreground">

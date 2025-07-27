@@ -165,7 +165,7 @@ export default function AdminOrderDetail() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'MXN'
     }).format(amount)
   }
 

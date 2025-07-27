@@ -275,7 +275,7 @@ export function generateOrderConfirmationEmail(data: OrderConfirmationData) {
                 ${item.color ? ` • Color: ${item.color}` : ''}
               </div>
             </div>
-            <div class="font-semibold">€${item.total.toFixed(2)}</div>
+            <div class="font-semibold">${item.total.toFixed(2)}</div>
           </div>
         `).join('')}
       </div>
@@ -283,7 +283,7 @@ export function generateOrderConfirmationEmail(data: OrderConfirmationData) {
       <div class="divider"></div>
       <div class="flex justify-between items-center">
         <div class="font-semibold">Total</div>
-        <div class="font-semibold" style="font-size: 18px;">€${total.toFixed(2)}</div>
+        <div class="font-semibold" style="font-size: 18px;">${total.toFixed(2)}</div>
       </div>
     </div>
     

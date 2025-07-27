@@ -44,7 +44,7 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'MXN'
     }).format(amount)
   }
 
