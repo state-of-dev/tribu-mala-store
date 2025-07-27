@@ -122,7 +122,29 @@ export async function POST(request: Request) {
 
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`)
+        console.log(`💳 PaymentIntent succeeded: ${paymentIntent.id}`)
+        console.log(`💰 Amount: ${paymentIntent.amount} ${paymentIntent.currency}`)
+        
+        // Get order number from metadata
+        const orderNumber = paymentIntent.metadata?.orderNumber
+        if (orderNumber) {
+          console.log(`📦 Looking for order: ${orderNumber}`)
+          
+          try {
+            const updatedOrder = await prisma.order.update({
+              where: { orderNumber: orderNumber },
+              data: { 
+                paymentStatus: 'PAID'
+              }
+            })
+            
+            console.log(`✅ Order ${orderNumber} payment status updated to PAID`)
+          } catch (error) {
+            console.error(`❌ Error updating payment status for order ${orderNumber}:`, error)
+          }
+        } else {
+          console.log(`⚠️ No orderNumber found in PaymentIntent metadata`)
+        }
         break
 
       default:
