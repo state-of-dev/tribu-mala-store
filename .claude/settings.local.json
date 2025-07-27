@@ -30,7 +30,9 @@
       "Bash(npx shadcn add:*)",
       "Bash(mv:*)",
       "Bash(npm run:*)",
-      "WebFetch(domain:ui.shadcn.com)"
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(git stash:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

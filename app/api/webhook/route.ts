@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/prisma"
-import { sendEmail, generateOrderConfirmationEmail } from "@/lib/email"
+import { sendOrderConfirmationEmail } from "@/lib/email"
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -70,17 +70,23 @@ export async function POST(request: Request) {
           console.log(`✅ Order ${updatedOrder.orderNumber} updated to PAID status`)
           
           // Send confirmation email
-          const emailHtml = generateOrderConfirmationEmail({
+          await sendOrderConfirmationEmail({
             orderNumber: updatedOrder.orderNumber,
             customerName: updatedOrder.user.name || 'Cliente',
-            items: updatedOrder.items,
-            total: updatedOrder.total
-          })
-          
-          await sendEmail({
-            to: updatedOrder.user.email,
-            subject: `Confirmación de pedido ${updatedOrder.orderNumber}`,
-            html: emailHtml
+            customerEmail: updatedOrder.user.email,
+            items: updatedOrder.items.map(item => ({
+              productName: item.product.name,
+              quantity: item.quantity,
+              productPrice: item.product.price,
+              total: item.quantity * item.product.price
+            })),
+            total: updatedOrder.total,
+            shippingAddress: updatedOrder.shippingAddress ? {
+              street: updatedOrder.shippingAddress,
+              city: 'Madrid',
+              state: 'Madrid', 
+              zipCode: '28001'
+            } : undefined
           })
           
           console.log(`📧 Confirmation email sent to ${updatedOrder.user.email}`)
