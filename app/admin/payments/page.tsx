@@ -26,7 +26,9 @@ import {
   Calendar,
   Eye,
   Filter,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCcw,
+  ExternalLink
 } from "lucide-react"
 
 interface Payment {
@@ -96,7 +98,7 @@ export default function PaymentsPage() {
       }
 
       setPaymentsData({
-        payments: paidPayments, // Solo mostrar pagos completados
+        payments: payments, // Mostrar TODOS los pagos
         metrics
       })
     } catch (error) {
@@ -122,6 +124,36 @@ export default function PaymentsPage() {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
+  }
+
+  const handleRetryPayment = async (orderId: string) => {
+    try {
+      // Crear nueva sesión de checkout para retry
+      const response = await fetch('/api/admin/retry-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.checkoutUrl) {
+        // Abrir nueva ventana con checkout
+        window.open(data.checkoutUrl, '_blank')
+      } else {
+        alert('Error al crear nueva sesión de pago')
+      }
+    } catch (error) {
+      console.error('Error retrying payment:', error)
+      alert('Error al reintentar el pago')
+    }
+  }
+
+  const openStripePayment = (stripeSessionId: string) => {
+    if (stripeSessionId) {
+      const stripeUrl = `https://dashboard.stripe.com/payments/${stripeSessionId.replace('cs_', 'pi_')}`
+      window.open(stripeUrl, '_blank')
+    }
   }
 
   if (loading) {
@@ -337,12 +369,36 @@ export default function PaymentsPage() {
                             </p>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-2">
                           <p className="font-semibold text-lg">{formatCurrency(payment.total)}</p>
                           <p className="text-xs text-muted-foreground flex items-center justify-end">
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(payment.createdAt).toLocaleDateString('es-MX')}
                           </p>
+                          <div className="flex gap-1 justify-end">
+                            {payment.paymentStatus === 'FAILED' && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleRetryPayment(payment.id)}
+                                className="text-xs"
+                              >
+                                <RefreshCcw className="h-3 w-3 mr-1" />
+                                Reintentar
+                              </Button>
+                            )}
+                            {payment.stripeSessionId && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => openStripePayment(payment.stripeSessionId!)}
+                                className="text-xs"
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Stripe
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

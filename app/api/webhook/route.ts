@@ -154,6 +154,30 @@ export async function POST(request: Request) {
         }
         break
 
+      case "payment_intent.payment_failed":
+        const failedPaymentIntent = event.data.object as Stripe.PaymentIntent
+        console.log(`❌ PaymentIntent failed: ${failedPaymentIntent.id}`)
+        
+        // Get order number from metadata
+        const failedOrderNumber = failedPaymentIntent.metadata?.orderNumber
+        if (failedOrderNumber) {
+          console.log(`📦 Marking order as failed: ${failedOrderNumber}`)
+          
+          try {
+            await prisma.order.update({
+              where: { orderNumber: failedOrderNumber },
+              data: { 
+                paymentStatus: 'FAILED'
+              }
+            })
+            
+            console.log(`❌ Order ${failedOrderNumber} payment status updated to FAILED`)
+          } catch (error) {
+            console.error(`❌ Error updating failed payment status for order ${failedOrderNumber}:`, error)
+          }
+        }
+        break
+
       default:
         console.log(`🔄 Unhandled event type ${event.type}`)
         console.log(`📄 Event data:`, JSON.stringify(event.data.object, null, 2))
