@@ -49,6 +49,12 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const [order, setOrder] = useState<Order | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  useEffect(() => {
+    if (params.id && session) {
+      fetchOrderDetail()
+    }
+  }, [params.id, session])
+
   // Redirect if not authenticated
   if (status === "loading") {
     return (
@@ -62,10 +68,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     router.push("/auth/signin")
     return null
   }
-
-  useEffect(() => {
-    fetchOrderDetail()
-  }, [params.id])
 
   const fetchOrderDetail = async () => {
     try {

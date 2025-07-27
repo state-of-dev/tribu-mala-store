@@ -10,7 +10,7 @@ if (!stripeSecretKey) {
 }
 
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-05-28.basil",
 })
 
 interface CheckoutRequestBody {

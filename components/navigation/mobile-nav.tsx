@@ -41,7 +41,7 @@ export function MobileNav({ className }: MobileNavProps) {
             <SheetTitle className="flex items-center justify-between text-white">
               <div className="flex items-center space-x-3">
                 <Logo />
-                <span className="font-bold text-lg">SDFM 2520</span>
+                <span className="font-bold text-lg">Tribu Mala</span>
               </div>
               <Button
                 variant="ghost"
@@ -76,7 +76,7 @@ export function MobileNav({ className }: MobileNavProps) {
             <div className="border-t border-dark-700 p-6">
               <div className="text-center">
                 <p className="text-xs text-gray-500">
-                  &copy; 2025 SDFM 2520
+                  &copy; 2025 Tribu Mala
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Premium Streetwear

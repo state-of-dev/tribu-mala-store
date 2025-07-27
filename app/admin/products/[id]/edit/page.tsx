@@ -414,7 +414,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                         id="name"
                         value={formData.name}
                         onChange={(e) => handleNameChange(e.target.value)}
-                        placeholder="Ej: SDFM Classic Black Hoodie"
+                        placeholder="Ej: Tribu Mala Classic Black Hoodie"
                       />
                     </div>
 
@@ -645,7 +645,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                         id="slug"
                         value={formData.slug}
                         onChange={(e) => handleInputChange('slug', e.target.value)}
-                        placeholder="sdfm-classic-black-hoodie"
+                        placeholder="tribu-mala-classic-black-hoodie"
                       />
                     </div>
                     <div>
@@ -654,7 +654,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                         id="metaTitle"
                         value={formData.metaTitle}
                         onChange={(e) => handleInputChange('metaTitle', e.target.value)}
-                        placeholder="SDFM Classic Black Hoodie - Premium Streetwear"
+                        placeholder="Tribu Mala Classic Black Hoodie - Premium Streetwear"
                       />
                     </div>
                     <div>

@@ -1,7 +1,7 @@
 // Store configuration - Clean version with only necessary config
 export const storeConfig = {
   // Store information
-  storeName: "SDFM 2520",
+  storeName: "Tribu Mala",
   storeDescription: "Premium streetwear and comfortable hoodies",
 
   // Note: Products are now loaded dynamically from database via /api/products

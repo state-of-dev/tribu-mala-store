@@ -15,20 +15,26 @@ if (!webhookSecret) {
 }
 
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-05-28.basil",
 })
 
 export async function POST(request: Request) {
+  console.log("🔔 Webhook received at:", new Date().toISOString())
+  
   try {
     const body = await request.text()
     const signature = request.headers.get("stripe-signature") as string
 
+    console.log("📝 Body length:", body.length)
+    console.log("🔐 Signature present:", !!signature)
+
     if (!signature) {
+      console.error("❌ Missing stripe-signature header")
       return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 })
     }
 
     if (!webhookSecret) {
-      console.log("Webhook secret not configured - skipping signature verification")
+      console.log("⚠️ Webhook secret not configured - skipping signature verification")
       return NextResponse.json({ received: true })
     }
 
@@ -36,8 +42,11 @@ export async function POST(request: Request) {
     let event: Stripe.Event
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+      console.log("✅ Webhook signature verified successfully")
+      console.log("📧 Event type:", event.type)
+      console.log("🆔 Event id:", event.id)
     } catch (err: any) {
-      console.error(`Webhook signature verification failed: ${err.message}`)
+      console.error(`❌ Webhook signature verification failed: ${err.message}`)
       return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
     }
 
@@ -50,11 +59,25 @@ export async function POST(request: Request) {
         console.log(`📧 Customer email: ${session.customer_details?.email}`)
         
         try {
+          console.log(`🔍 Looking for order with session ID: ${session.id}`)
+          
+          // First check if order exists
+          const existingOrder = await prisma.order.findUnique({
+            where: { stripeSessionId: session.id }
+          })
+          
+          if (!existingOrder) {
+            console.error(`❌ No order found with session ID: ${session.id}`)
+            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          }
+          
+          console.log(`📦 Found order: ${existingOrder.orderNumber}`)
+          
           // Update order status to PAID
           const updatedOrder = await prisma.order.update({
             where: { stripeSessionId: session.id },
             data: { 
-              status: 'PAID',
+              status: 'CONFIRMED',
               paymentStatus: 'PAID'
             },
             include: {
@@ -103,12 +126,14 @@ export async function POST(request: Request) {
         break
 
       default:
-        console.log(`Unhandled event type ${event.type}`)
+        console.log(`🔄 Unhandled event type ${event.type}`)
+        console.log(`📄 Event data:`, JSON.stringify(event.data.object, null, 2))
     }
 
-    return NextResponse.json({ received: true })
+    console.log("✅ Webhook processed successfully")
+    return NextResponse.json({ received: true, eventType: event.type })
   } catch (error) {
-    console.error("Error processing webhook:", error)
+    console.error("❌ Error processing webhook:", error)
     return NextResponse.json({ error: "Error processing webhook" }, { status: 500 })
   }
 }
