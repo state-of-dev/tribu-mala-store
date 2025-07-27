@@ -57,6 +57,7 @@ export async function POST(request: Request) {
         
         console.log(`🎉 Payment successful for session: ${session.id}`)
         console.log(`📧 Customer email: ${session.customer_details?.email}`)
+        console.log(`📄 Session data:`, JSON.stringify(session, null, 2))
         
         try {
           console.log(`🔍 Looking for order with session ID: ${session.id}`)
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
           }
           
           console.log(`📦 Found order: ${existingOrder.orderNumber}`)
+          console.log(`📧 Order customer email: ${existingOrder.customerEmail}`)
           
           // Update order status to PAID
           const updatedOrder = await prisma.order.update({
@@ -92,11 +94,16 @@ export async function POST(request: Request) {
           
           console.log(`✅ Order ${updatedOrder.orderNumber} updated to PAID status`)
           
-          // Send confirmation email
+          // Send confirmation email using order data
+          const customerEmail = updatedOrder.customerEmail || updatedOrder.user?.email
+          const customerName = updatedOrder.customerName || updatedOrder.user?.name || 'Cliente'
+          
+          console.log(`📧 Sending email to: ${customerEmail}`)
+          
           await sendOrderConfirmationEmail({
             orderNumber: updatedOrder.orderNumber,
-            customerName: updatedOrder.user.name || 'Cliente',
-            customerEmail: updatedOrder.user.email,
+            customerName: customerName,
+            customerEmail: customerEmail,
             items: updatedOrder.items.map(item => ({
               productName: item.product.name,
               quantity: item.quantity,
