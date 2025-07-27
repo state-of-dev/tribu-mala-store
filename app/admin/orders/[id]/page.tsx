@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save, Package, User, CreditCard, MapPin } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { OrderStatusManager } from "@/components/admin/order-status-manager"
 
 interface OrderItem {
   id: string
@@ -46,6 +47,7 @@ interface Order {
   paymentStatus: string
   customerNotes?: string
   adminNotes?: string
+  stripeSessionId?: string
   createdAt: string
   updatedAt: string
   shippedAt?: string
@@ -171,6 +173,59 @@ export default function AdminOrderDetail() {
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString('es-MX')
+  }
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      const data = await response.json()
+
+      if (data.success && orderData) {
+        // Update local state
+        setOrderData({
+          ...orderData,
+          order: {
+            ...orderData.order,
+            status: newStatus,
+            ...(data.order.shippedAt && { shippedAt: data.order.shippedAt }),
+            ...(data.order.deliveredAt && { deliveredAt: data.order.deliveredAt })
+          }
+        })
+        toast.success(`Estado actualizado a ${newStatus}`)
+      } else {
+        toast.error('Error al actualizar el estado')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      toast.error('Error al actualizar el estado')
+    }
+  }
+
+  const handlePaymentRetry = async () => {
+    try {
+      const response = await fetch('/api/admin/retry-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.checkoutUrl) {
+        window.open(data.checkoutUrl, '_blank')
+        toast.success('Nueva sesión de pago creada')
+      } else {
+        toast.error('Error al crear nueva sesión de pago')
+      }
+    } catch (error) {
+      console.error('Error retrying payment:', error)
+      toast.error('Error al reintentar el pago')
+    }
   }
 
   if (loading) {
@@ -331,32 +386,25 @@ export default function AdminOrderDetail() {
 
         {/* Columna derecha - Gestión y resumen */}
         <div className="space-y-6">
-          {/* Gestión de estado */}
+          {/* Gestión de estado con OrderStatusManager */}
+          <OrderStatusManager
+            orderId={orderId}
+            orderNumber={order.orderNumber}
+            currentStatus={order.status}
+            currentPaymentStatus={order.paymentStatus}
+            stripeSessionId={order.stripeSessionId}
+            onStatusUpdate={handleStatusUpdate}
+            onPaymentRetry={handlePaymentRetry}
+          />
+
+          {/* Notas administrativas */}
           <Card>
             <CardHeader>
-              <CardTitle>Gestión de Orden</CardTitle>
+              <CardTitle>Notas Administrativas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="status">Estado de la orden</Label>
-                <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING">Pendiente</SelectItem>
-                    <SelectItem value="CONFIRMED">Confirmado</SelectItem>
-                    <SelectItem value="PROCESSING">Procesando</SelectItem>
-                    <SelectItem value="SHIPPED">Enviado</SelectItem>
-                    <SelectItem value="DELIVERED">Entregado</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
-                    <SelectItem value="RETURNED">Devuelto</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="adminNotes">Notas administrativas</Label>
+                <Label htmlFor="adminNotes">Notas internas</Label>
                 <Textarea
                   id="adminNotes"
                   value={adminNotes}
@@ -373,7 +421,7 @@ export default function AdminOrderDetail() {
                 className="w-full"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Actualizar Orden'}
+                {saving ? 'Guardando...' : 'Guardar Notas'}
               </Button>
             </CardContent>
           </Card>
