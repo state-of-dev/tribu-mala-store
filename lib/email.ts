@@ -9,23 +9,27 @@ interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: EmailOptions) {
+  console.log(`📧 Attempting to send email to: ${to}`)
+  console.log(`📧 Subject: ${subject}`)
+  console.log(`🔑 Resend API Key present: ${!!process.env.RESEND_API_KEY}`)
+  
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Tribu Mala Store <noreply@resend.dev>',
+      from: 'Tribu Mala Store <onboarding@resend.dev>',
       to: [to],
       subject: subject,
       html: html,
     })
 
     if (error) {
-      console.error('❌ Error sending email:', error)
+      console.error('❌ Resend API Error:', JSON.stringify(error, null, 2))
       return { success: false, error }
     }
 
-    console.log('✅ Email sent successfully:', data)
+    console.log('✅ Email sent successfully:', JSON.stringify(data, null, 2))
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Error sending email:', error)
+    console.error('❌ Catch block error:', error)
     return { success: false, error }
   }
 }
