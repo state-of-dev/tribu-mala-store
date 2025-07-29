@@ -53,13 +53,7 @@ function PaymentForm({ clientSecret, orderNumber }: { clientSecret: string, orde
   }
 
   const paymentElementOptions = {
-    layout: "tabs" as const,
-    defaultValues: {
-      billingDetails: {
-        name: '',
-        email: ''
-      }
-    }
+    layout: "tabs" as const
   }
 
   return (
@@ -77,8 +71,8 @@ function PaymentForm({ clientSecret, orderNumber }: { clientSecret: string, orde
       </Card>
 
       {message && (
-        <div className="bg-red-900/20 border border-red-500/50 rounded p-3">
-          <div className="flex items-center text-red-400 text-sm">
+        <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3">
+          <div className="flex items-center text-red-400 text-sm text-center">
             <XCircle className="h-4 w-4 mr-2" />
             {message}
           </div>

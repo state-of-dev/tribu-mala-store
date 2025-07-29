@@ -63,7 +63,7 @@ export function SplashScreen() {
 
       {/* Progress bar container */}
       <div className="w-64 h-1 bg-dark-400 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-black via-gray-400 to-white transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
+        <div className="h-full bg-white transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
       {/* Progress percentage */}

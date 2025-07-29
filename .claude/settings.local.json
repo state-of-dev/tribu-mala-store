@@ -38,7 +38,8 @@
       "Bash(npm uninstall:*)",
       "Bash(tasklist:*)",
       "WebFetch(domain:tribu-mala-store.vercel.app)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }
