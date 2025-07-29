@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useAlertModal } from "@/components/ui/alert-modal"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -57,6 +58,7 @@ export default function PaymentsPage() {
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { showAlert, AlertModalComponent } = useAlertModal()
 
   useEffect(() => {
     fetchPayments()
@@ -141,11 +143,11 @@ export default function PaymentsPage() {
         // Abrir nueva ventana con checkout
         window.open(data.checkoutUrl, '_blank')
       } else {
-        alert('Error al crear nueva sesión de pago')
+        showAlert("Error", "No se pudo crear una nueva sesión de pago. Inténtalo de nuevo.", "Aceptar", "destructive")
       }
     } catch (error) {
       console.error('Error retrying payment:', error)
-      alert('Error al reintentar el pago')
+      showAlert("Error", "Hubo un problema al reintentar el pago. Inténtalo de nuevo.", "Aceptar", "destructive")
     }
   }
 
@@ -416,6 +418,7 @@ export default function PaymentsPage() {
             </Card>
           </div>
         </SidebarInset>
+        <AlertModalComponent />
       </SidebarProvider>
     </div>
   )

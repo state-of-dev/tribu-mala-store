@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, CreditCard, Lock, ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
+import { useAlertModal } from "@/components/ui/alert-modal"
 
 interface CheckoutForm {
   // Información personal
@@ -35,6 +36,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, totalPrice: total, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
+  const { showAlert, AlertModalComponent } = useAlertModal()
   const [formData, setFormData] = useState<CheckoutForm>({
     email: "",
     name: "",
@@ -131,7 +133,7 @@ export default function CheckoutPage() {
     e.preventDefault()
     
     if (!validateForm()) {
-      alert("Por favor completa todos los campos requeridos")
+      showAlert("Campos requeridos", "Por favor completa todos los campos requeridos para continuar.", "Aceptar", "destructive")
       return
     }
 
@@ -167,7 +169,7 @@ export default function CheckoutPage() {
       
     } catch (error: any) {
       console.error("❌ Error en checkout:", error)
-      alert(error.message || "Error al procesar el pedido")
+      showAlert("Error en el pedido", error.message || "Hubo un problema al procesar tu pedido. Inténtalo de nuevo.", "Aceptar", "destructive")
     } finally {
       setIsLoading(false)
     }
@@ -218,7 +220,6 @@ export default function CheckoutPage() {
                         value={formData.name}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="Tu nombre completo"
                       />
                     </div>
@@ -231,7 +232,6 @@ export default function CheckoutPage() {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="tu@email.com"
                       />
                     </div>
@@ -244,7 +244,6 @@ export default function CheckoutPage() {
                       type="tel"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                       placeholder="+52 55 1234 5678"
                     />
                   </div>
@@ -265,7 +264,6 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       required
-                      className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                       placeholder="Calle, número, colonia"
                     />
                   </div>
@@ -278,7 +276,6 @@ export default function CheckoutPage() {
                         value={formData.city}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="Ciudad"
                       />
                     </div>
@@ -290,7 +287,6 @@ export default function CheckoutPage() {
                         value={formData.state}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="Estado"
                       />
                     </div>
@@ -304,7 +300,6 @@ export default function CheckoutPage() {
                         value={formData.zip}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="12345"
                       />
                     </div>
@@ -316,7 +311,6 @@ export default function CheckoutPage() {
                         value={formData.country}
                         onChange={handleInputChange}
                         required
-                        className="bg-gray-800 border-gray-500 text-white placeholder-gray-400"
                         placeholder="México"
                       />
                     </div>
@@ -329,7 +323,7 @@ export default function CheckoutPage() {
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-500 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-transparent transition-all duration-200"
                       placeholder="Instrucciones especiales de entrega..."
                     />
                   </div>
@@ -433,14 +427,14 @@ export default function CheckoutPage() {
                     <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
                   </div>
                 ) : session ? (
-                  <div className="bg-green-900/20 border border-green-500/50 rounded p-3">
-                    <div className="text-green-400 text-sm font-medium">
+                  <div className="bg-green-900/20 border border-green-500/50 rounded-lg p-3">
+                    <div className="text-green-400 text-sm font-medium text-center">
                       Conectado como {session.user?.name || session.user?.email}
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-blue-900/20 border border-blue-500/50 rounded p-3">
-                    <div className="text-blue-400 text-sm">
+                  <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-3">
+                    <div className="text-blue-400 text-sm text-center">
                       💡 <Link href="/auth/signin" className="underline">Inicia sesión</Link> para pre-llenar tus datos
                     </div>
                   </div>
@@ -449,6 +443,7 @@ export default function CheckoutPage() {
             </Card>
           </div>
         </div>
+        <AlertModalComponent />
       </div>
     </div>
   )

@@ -10,11 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { User, Mail, MapPin, Phone, Save, Loader2 } from "lucide-react"
+import { useAlertModal } from "@/components/ui/alert-modal"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const { showAlert, AlertModalComponent } = useAlertModal()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -103,14 +105,14 @@ export default function ProfilePage() {
       })
       
       if (response.ok) {
-        alert("Perfil actualizado exitosamente")
+        showAlert("¡Éxito!", "Tu perfil ha sido actualizado exitosamente")
       } else {
         throw new Error('Error al actualizar perfil')
       }
       
     } catch (error) {
       console.error("❌ Error al actualizar perfil:", error)
-      alert("Error al actualizar perfil")
+      showAlert("Error", "Hubo un problema al actualizar tu perfil. Inténtalo de nuevo.", "Aceptar", "destructive")
     } finally {
       setIsLoading(false)
     }
@@ -360,6 +362,7 @@ export default function ProfilePage() {
             </Button>
           </div>
         </form>
+        <AlertModalComponent />
       </div>
     </div>
   )
