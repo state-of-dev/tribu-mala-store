@@ -107,16 +107,16 @@ export function UserAvatar({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/payment-methods">
+            {/* <Link href="/payment-methods">
               <CreditCard className="mr-2 h-4 w-4" />
               Métodos de Pago
-            </Link>
+            </Link> */}
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/notifications">
+            {/* <Link href="/notifications">
               <Bell className="mr-2 h-4 w-4" />
               Notificaciones
-            </Link>
+            </Link> */}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

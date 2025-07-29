@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState, memo } from "react"
+import { useState, memo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -21,10 +21,10 @@ interface HoodieCardProps {
   stock?: number
 }
 
-export function HoodieCard({ id, title, price, image, description, stock = 0 }: HoodieCardProps) {
+const HoodieCard = memo(function HoodieCard({ id, title, price, image, description, stock = 0 }: HoodieCardProps) {
   const { addItem } = useCart()
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     
@@ -36,20 +36,20 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
       image2: image,
     }
     addItem(product)
-  }
+  }, [id, title, image, addItem])
 
   const isOutOfStock = stock <= 0
   const isLowStock = stock > 0 && stock <= 5
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
-  }
+  }, [])
 
   return (
-    <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
+    <Card className="group cursor-pointer hover:shadow-lg smooth-transition overflow-hidden gpu-accelerated">
       <Link href={`/products/${id}`}>
         <CardContent className="p-0">
           <div className="relative aspect-square overflow-hidden">
@@ -57,8 +57,12 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
               src={image}
               alt={title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover smooth-transition group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              priority={false}
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
             />
             
             {/* Stock badges */}
@@ -120,7 +124,6 @@ export function HoodieCard({ id, title, price, image, description, stock = 0 }: 
       </CardFooter>
     </Card>
   )
-}
+})
 
-// Memoizar el componente para evitar re-renders innecesarios
-export default memo(HoodieCard)
+export { HoodieCard }

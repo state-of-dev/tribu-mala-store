@@ -1,6 +1,4 @@
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import nodemailer from 'nodemailer'
 
 interface EmailOptions {
   to: string
@@ -8,28 +6,38 @@ interface EmailOptions {
   html: string
 }
 
+// Crear el transporter de Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+})
+
 export async function sendEmail({ to, subject, html }: EmailOptions) {
   console.log(`📧 Attempting to send email to: ${to}`)
   console.log(`📧 Subject: ${subject}`)
-  console.log(`🔑 Resend API Key present: ${!!process.env.RESEND_API_KEY}`)
+  console.log(`🔑 Gmail User present: ${!!process.env.GMAIL_USER}`)
+  console.log(`🔑 Gmail App Password present: ${!!process.env.GMAIL_APP_PASSWORD}`)
   
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'Tribu Mala Store <onboarding@resend.dev>',
-      to: [to],
+    const mailOptions = {
+      from: `"Tribu Mala Store" <${process.env.GMAIL_USER}>`,
+      to: to,
       subject: subject,
-      html: html,
-    })
-
-    if (error) {
-      console.error('❌ Resend API Error:', JSON.stringify(error, null, 2))
-      return { success: false, error }
+      html: html
     }
 
-    console.log('✅ Email sent successfully:', JSON.stringify(data, null, 2))
-    return { success: true, data }
+    console.log(`📧 Sending email from: ${process.env.GMAIL_USER}`)
+    console.log(`📧 Mail options:`, JSON.stringify(mailOptions, null, 2))
+
+    const result = await transporter.sendMail(mailOptions)
+
+    console.log('✅ Email sent successfully:', JSON.stringify(result, null, 2))
+    return { success: true, data: result }
   } catch (error) {
-    console.error('❌ Catch block error:', error)
+    console.error('❌ Nodemailer Error:', error)
     return { success: false, error }
   }
 }
@@ -434,5 +442,267 @@ export async function sendPasswordResetEmail(data: PasswordResetData, email: str
     to: email,
     subject: 'Restablecer Contraseña - Tribu Mala Store',
     html: generatePasswordResetEmail(data)
+  })
+}
+
+// 4. ORDER STATUS CHANGE EMAIL
+interface OrderStatusChangeData {
+  orderNumber: string
+  customerName: string
+  newStatus: string
+  orderUrl?: string
+  orderDetails?: {
+    items: Array<{
+      productName: string
+      quantity: number
+      productPrice: number
+      total: number
+      size?: string
+      color?: string
+    }>
+    subtotal: number
+    shippingCost: number
+    tax: number
+    total: number
+    shippingAddress?: string
+    shippingCity?: string
+    shippingZip?: string
+    shippingCountry?: string
+  }
+}
+
+export function generateOrderStatusChangeEmail(data: OrderStatusChangeData) {
+  const { orderNumber, customerName, newStatus, orderUrl, orderDetails } = data
+  
+  // Configuración de colores y textos por estado
+  const statusConfig = {
+    'CONFIRMED': {
+      color: '#3b82f6', // blue
+      bgColor: '#eff6ff',
+      title: 'CONFIRMADO',
+      message: 'Tu pedido ha sido confirmado y está siendo preparado.',
+      nextStep: 'Tu pedido será enviado en las próximas 24-48 horas.'
+    },
+    'SHIPPED': {
+      color: '#8b5cf6', // purple
+      bgColor: '#f5f3ff',
+      title: 'ENVIADO',
+      message: 'Tu pedido está en camino.',
+      nextStep: 'Recibirás tu pedido en 2-3 días hábiles.'
+    },
+    'DELIVERED': {
+      color: '#10b981', // green
+      bgColor: '#ecfdf5',
+      title: 'ENTREGADO',
+      message: 'Tu pedido ha sido entregado exitosamente.',
+      nextStep: 'Esperamos que disfrutes tu compra. ¡Gracias por elegirnos!'
+    },
+    'CANCELLED': {
+      color: '#ef4444', // red
+      bgColor: '#fef2f2',
+      title: 'CANCELADO',
+      message: 'Tu pedido ha sido cancelado y los fondos han sido devueltos.',
+      nextStep: 'Los fondos serán reintegrados a tu tarjeta en 3-5 días hábiles. Si tienes preguntas, contáctanos.'
+    }
+  }
+
+  // Definir todos los estados para el timeline
+  const allStatuses = [
+    { key: 'CONFIRMED', title: 'CONFIRMADO', color: '#3b82f6' },
+    { key: 'SHIPPED', title: 'ENVIADO', color: '#8b5cf6' },
+    { key: 'DELIVERED', title: 'ENTREGADO', color: '#10b981' },
+    { key: 'CANCELLED', title: 'CANCELADO', color: '#ef4444' }
+  ]
+
+  const config = statusConfig[newStatus as keyof typeof statusConfig] || statusConfig['CONFIRMED']
+  
+  // Generar timeline - siempre mostrar los 3 estados principales
+  const generateTimeline = () => {
+    // Solo mostrar los 3 estados principales del flujo normal
+    const mainStatuses = allStatuses.filter(s => s.key !== 'CANCELLED')
+    
+    // Si está cancelado, mostrar flujo de cancelación
+    if (newStatus === 'CANCELLED') {
+      return `
+        <div style="display: flex; align-items: center; margin: 12px 0; line-height: 1;">
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; margin-right: 12px; flex-shrink: 0;"></div>
+          <span style="color: #000000; font-weight: normal; font-size: 14px; line-height: 14px;">CONFIRMADO</span>
+        </div>
+        <div style="display: flex; align-items: center; margin: 12px 0; line-height: 1;">
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #ef4444; margin-right: 12px; flex-shrink: 0;"></div>
+          <span style="color: #000000; font-weight: bold; font-size: 14px; line-height: 14px;">CANCELADO</span>
+          <span style="color: #ef4444; font-weight: bold; margin-left: 8px; font-size: 12px; line-height: 12px;">(ESTADO ACTUAL)</span>
+        </div>
+      `
+    }
+    
+    // Flujo normal - siempre mostrar los 3 estados
+    const currentStatusIndex = mainStatuses.findIndex(s => s.key === newStatus)
+    
+    return mainStatuses.map((status, index) => {
+      const isCompleted = index < currentStatusIndex
+      const isCurrent = status.key === newStatus
+      const isPending = index > currentStatusIndex
+      
+      let statusColor = '#cbd5e1' // pending color
+      let textColor = '#64748b'   // pending text
+      let fontWeight = 'normal'
+      
+      if (isCompleted) {
+        statusColor = status.color
+        textColor = '#000000'
+        fontWeight = 'normal'
+      } else if (isCurrent) {
+        statusColor = status.color
+        textColor = '#000000'
+        fontWeight = 'bold'
+      }
+      
+      return `
+        <div style="display: flex; align-items: center; margin: 12px 0; line-height: 1;">
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: ${statusColor}; margin-right: 12px; flex-shrink: 0;"></div>
+          <span style="color: ${textColor}; font-weight: ${fontWeight}; font-size: 14px; line-height: 14px;">${status.title}</span>
+          ${isCurrent ? `<span style="color: ${status.color}; font-weight: bold; margin-left: 8px; font-size: 12px; line-height: 12px;">(ESTADO ACTUAL)</span>` : ''}
+        </div>
+      `
+    }).join('')
+  }
+  
+  const content = `
+    <div style="background: ${config.bgColor}; border: 1px solid ${config.color}20; padding: 24px; border-radius: 8px; margin: 16px 0; text-align: center;">
+      <h2 style="color: ${config.color}; margin: 0 0 8px 0; font-size: 24px; font-weight: bold;">${config.title}</h2>
+      <p style="color: #374151; margin: 0; font-size: 16px;">${config.message}</p>
+    </div>
+    
+    <p>Hola <strong>${customerName}</strong>,</p>
+    <p>Te informamos que el estado de tu pedido ha cambiado.</p>
+    
+    <div class="card">
+      <h3>Detalles del Pedido</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;">
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Número de Pedido</p>
+          <p style="font-weight: 600; margin: 0;">${orderNumber}</p>
+        </div>
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Estado Actual</p>
+          <p style="font-weight: 600; color: ${config.color}; margin: 0;">${config.title}</p>
+        </div>
+      </div>
+      <div style="margin: 16px 0;">
+        <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Fecha de Actualización</p>
+        <p style="font-weight: 600; margin: 0;">${new Date().toLocaleDateString('es-MX', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}</p>
+      </div>
+    </div>
+    
+    ${orderDetails ? `
+    <div class="card">
+      <h4>Productos Comprados</h4>
+      <div style="margin: 16px 0;">
+        ${orderDetails.items.map(item => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="flex: 1;">
+              <p style="font-weight: 600; margin: 0 0 4px 0;">${item.productName}</p>
+              <p style="font-size: 14px; color: #64748b; margin: 0;">
+                Cantidad: ${item.quantity}
+                ${item.size ? ` • Talla: ${item.size}` : ''}
+                ${item.color ? ` • Color: ${item.color}` : ''}
+              </p>
+              <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">
+                Precio unitario: $${item.productPrice.toFixed(2)}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <p style="font-weight: 600; margin: 0;">$${item.total.toFixed(2)}</p>
+            </div>
+          </div>
+        `).join('')}
+        
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
+          <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+            <span>Subtotal:</span>
+            <span>$${orderDetails.subtotal.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+            <span>Envío:</span>
+            <span>$${orderDetails.shippingCost.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+            <span>Impuestos:</span>
+            <span>$${orderDetails.tax.toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+            <span style="font-weight: bold; font-size: 18px;">Total:</span>
+            <span style="font-weight: bold; font-size: 18px;">$${orderDetails.total.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    ${orderDetails.shippingAddress ? `
+    <div class="card">
+      <h4>Dirección de Envío</h4>
+      <div style="margin: 16px 0;">
+        <p style="margin: 0; line-height: 1.5;">
+          ${orderDetails.shippingAddress}<br>
+          ${orderDetails.shippingCity}, ${orderDetails.shippingZip}<br>
+          ${orderDetails.shippingCountry}
+        </p>
+      </div>
+    </div>
+    ` : ''}
+    ` : ''}
+    
+    <div class="card">
+      <h4>Progreso del Pedido</h4>
+      <div style="margin: 16px 0;">
+        ${generateTimeline()}
+      </div>
+    </div>
+    
+    <div class="card">
+      <h4>Próximos Pasos</h4>
+      <p style="font-size: 14px; margin: 8px 0;">${config.nextStep}</p>
+      ${orderUrl ? `
+        <div style="text-align: center; margin: 16px 0;">
+          <a href="${orderUrl}" class="button">Ver Detalles del Pedido</a>
+        </div>
+      ` : ''}
+    </div>
+    
+    <p>Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos.</p>
+    
+    <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 6px; border-left: 4px solid ${config.color};">
+      <p style="margin: 0; font-size: 14px; color: #475569;">
+        <strong>Información de contacto:</strong><br>
+        Email: soporte@tribumala.com<br>
+        Horario de atención: Lunes a Viernes de 9:00 AM a 6:00 PM
+      </p>
+    </div>
+  `
+  
+  return getBaseTemplate(content)
+}
+
+export async function sendOrderStatusChangeEmail(data: OrderStatusChangeData, email: string) {
+  const statusTitles = {
+    'CONFIRMED': 'Confirmado',
+    'SHIPPED': 'Enviado',
+    'DELIVERED': 'Entregado',
+    'CANCELLED': 'Cancelado'
+  }
+  
+  const statusTitle = statusTitles[data.newStatus as keyof typeof statusTitles] || data.newStatus
+  
+  return await sendEmail({
+    to: email,
+    subject: `Pedido ${statusTitle} #${data.orderNumber} - Tribu Mala Store`,
+    html: generateOrderStatusChangeEmail(data)
   })
 }

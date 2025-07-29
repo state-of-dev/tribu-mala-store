@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Package, MapPin, CreditCard, Calendar, Loader2, Truck } from "lucide-react"
+import { ArrowLeft, Package, MapPin, CreditCard, Calendar, Loader2, Truck, Clock, CheckCircle, AlertCircle, XCircle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
 interface OrderItem {
@@ -124,6 +124,48 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     }
   }
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING": return "bg-yellow-900 text-yellow-300"
+      case "PAID": return "bg-green-900 text-green-300"
+      case "FAILED": return "bg-red-900 text-red-300"
+      case "REFUNDED": return "bg-gray-900 text-gray-300"
+      default: return "bg-gray-900 text-gray-300"
+    }
+  }
+
+  const getPaymentStatusLabel = (status: string) => {
+    switch (status) {
+      case "PENDING": return "Pago Pendiente"
+      case "PAID": return "Pagado"
+      case "FAILED": return "Pago Fallido"
+      case "REFUNDED": return "Reembolsado"
+      default: return status
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "PENDING": return <Clock className="h-3 w-3" />
+      case "CONFIRMED": return <CheckCircle className="h-3 w-3" />
+      case "PROCESSING": return <RefreshCw className="h-3 w-3" />
+      case "SHIPPED": return <Truck className="h-3 w-3" />
+      case "DELIVERED": return <CheckCircle className="h-3 w-3" />
+      case "CANCELLED": return <XCircle className="h-3 w-3" />
+      default: return <Package className="h-3 w-3" />
+    }
+  }
+
+  const getPaymentStatusIcon = (status: string) => {
+    switch (status) {
+      case "PENDING": return <Clock className="h-3 w-3" />
+      case "PAID": return <CheckCircle className="h-3 w-3" />
+      case "FAILED": return <XCircle className="h-3 w-3" />
+      case "REFUNDED": return <RefreshCw className="h-3 w-3" />
+      default: return <CreditCard className="h-3 w-3" />
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-MX', {
       year: 'numeric',
@@ -194,9 +236,16 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 Realizado el {formatDate(order.createdAt)}
               </p>
             </div>
-            <Badge className={getStatusColor(order.status)}>
-              {getStatusLabel(order.status)}
-            </Badge>
+            <div className="flex flex-col gap-2">
+              <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
+                {getStatusIcon(order.status)}
+                {getStatusLabel(order.status)}
+              </Badge>
+              <Badge className={`${getPaymentStatusColor(order.paymentStatus)} flex items-center gap-1`}>
+                {getPaymentStatusIcon(order.paymentStatus)}
+                {getPaymentStatusLabel(order.paymentStatus)}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -309,6 +358,51 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                   <span className="text-white">Total</span>
                   <span className="text-white">{formatCurrency(order.total)}</span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Estado del Pedido y Pago */}
+            <Card className="bg-dark-800 border-dark-600">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <Package className="mr-2 h-5 w-5" />
+                  Estado del Pedido
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Estado del Pedido:</p>
+                    <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
+                      {getStatusIcon(order.status)}
+                      {getStatusLabel(order.status)}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Estado del Pago:</p>
+                    <Badge className={`${getPaymentStatusColor(order.paymentStatus)} flex items-center gap-1`}>
+                      {getPaymentStatusIcon(order.paymentStatus)}
+                      {getPaymentStatusLabel(order.paymentStatus)}
+                    </Badge>
+                  </div>
+                </div>
+
+                {order.paymentStatus === 'FAILED' && (
+                  <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                    <p className="text-sm text-red-300">
+                      El pago ha fallado. Por favor, contacta con nuestro equipo de soporte.
+                    </p>
+                  </div>
+                )}
+
+                {order.paymentStatus === 'PENDING' && (
+                  <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+                    <p className="text-sm text-yellow-300">
+                      Tu pago está siendo procesado. Te notificaremos cuando se complete.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

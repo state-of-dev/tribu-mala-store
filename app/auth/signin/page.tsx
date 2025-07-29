@@ -71,20 +71,26 @@ export default function SignInPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-dark-700"
               placeholder="tu@email.com"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Contraseña</Label>
+              <Link 
+                href="/auth/forgot-password" 
+                className="text-sm text-blue-400 hover:text-blue-300"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-dark-700"
               placeholder="••••••••"
             />
           </div>

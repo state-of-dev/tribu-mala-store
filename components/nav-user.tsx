@@ -4,7 +4,6 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   User,
   ShoppingBag,
@@ -89,10 +88,6 @@ export function NavUser({
               <DropdownMenuItem>
                 <ShoppingBag />
                 Mis Pedidos
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Métodos de Pago
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />

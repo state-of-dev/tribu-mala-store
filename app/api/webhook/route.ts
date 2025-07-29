@@ -100,26 +100,38 @@ export async function POST(request: Request) {
           
           console.log(`📧 Sending email to: ${customerEmail}`)
           
-          await sendOrderConfirmationEmail({
-            orderNumber: updatedOrder.orderNumber,
-            customerName: customerName,
-            customerEmail: customerEmail,
-            items: updatedOrder.items.map(item => ({
-              productName: item.product.name,
-              quantity: item.quantity,
-              productPrice: item.product.price,
-              total: item.quantity * item.product.price
-            })),
-            total: updatedOrder.total,
-            shippingAddress: updatedOrder.shippingAddress ? {
-              street: updatedOrder.shippingAddress,
-              city: 'Madrid',
-              state: 'Madrid', 
-              zipCode: '28001'
-            } : undefined
-          })
-          
-          console.log(`📧 Confirmation email sent to ${updatedOrder.user.email}`)
+          if (customerEmail) {
+            try {
+              const emailResult = await sendOrderConfirmationEmail({
+                orderNumber: updatedOrder.orderNumber,
+                customerName: customerName,
+                customerEmail: customerEmail,
+                items: updatedOrder.items.map(item => ({
+                  productName: item.product.name,
+                  quantity: item.quantity,
+                  productPrice: item.product.price,
+                  total: item.quantity * item.product.price
+                })),
+                total: updatedOrder.total,
+                shippingAddress: updatedOrder.shippingAddress ? {
+                  street: updatedOrder.shippingAddress,
+                  city: updatedOrder.shippingCity,
+                  state: updatedOrder.shippingCountry, 
+                  zipCode: updatedOrder.shippingZip
+                } : undefined
+              })
+              
+              if (emailResult.success) {
+                console.log(`✅ Confirmation email sent successfully to: ${customerEmail}`)
+              } else {
+                console.error(`❌ Failed to send confirmation email:`, emailResult.error)
+              }
+            } catch (emailError) {
+              console.error(`❌ Error sending confirmation email:`, emailError)
+            }
+          } else {
+            console.error(`❌ No customer email found for order: ${updatedOrder.orderNumber}`)
+          }
           
         } catch (error) {
           console.error(`❌ Error updating order for session ${session.id}:`, error)

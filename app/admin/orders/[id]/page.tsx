@@ -154,6 +154,19 @@ export default function AdminOrderDetail() {
     }
   }
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'PENDING': return 'Pendiente'
+      case 'CONFIRMED': return 'Confirmado'
+      case 'PROCESSING': return 'Procesando'
+      case 'SHIPPED': return 'Enviado'
+      case 'DELIVERED': return 'Entregado'
+      case 'CANCELLED': return 'Cancelado'
+      case 'RETURNED': return 'Devuelto'
+      default: return status
+    }
+  }
+
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'PAID': return 'bg-green-500'
@@ -161,6 +174,16 @@ export default function AdminOrderDetail() {
       case 'FAILED': return 'bg-red-500'
       case 'REFUNDED': return 'bg-blue-500'
       default: return 'bg-black'
+    }
+  }
+
+  const getPaymentStatusText = (status: string) => {
+    switch (status) {
+      case 'PAID': return 'Pagado'
+      case 'PENDING': return 'Pendiente'
+      case 'FAILED': return 'Fallido'
+      case 'REFUNDED': return 'Reembolsado'
+      default: return status
     }
   }
 
@@ -286,13 +309,13 @@ export default function AdminOrderDetail() {
             variant="secondary" 
             className={`text-white ${getStatusColor(order.status)}`}
           >
-            {order.status}
+            {getStatusText(order.status)}
           </Badge>
           <Badge 
             variant="outline" 
             className={`text-white ${getPaymentStatusColor(order.paymentStatus)}`}
           >
-            {order.paymentStatus}
+            {getPaymentStatusText(order.paymentStatus)}
           </Badge>
         </div>
       </div>

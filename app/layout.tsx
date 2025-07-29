@@ -2,15 +2,21 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import type React from "react"
+import dynamic from "next/dynamic"
 import { SplashScreen } from "@/components/splash-screen"
 import { Logo } from "@/components/logo"
-import { CustomCursor } from "@/components/custom-cursor"
 import { CartProvider } from "@/context/cart-context"
 import { CartIcon } from "@/components/cart-icon"
-import { CartDrawer } from "@/components/cart-drawer"
 import { Providers } from "@/components/providers/session-provider"
 import { AuthNav } from "@/components/navigation/auth-nav"
 import { ThemeProvider } from "@/components/theme-provider"
+import { PageLoader } from "@/components/page-loader"
+
+// Dynamic imports for better performance
+const CartDrawer = dynamic(() => import("@/components/cart-drawer").then(mod => ({ default: mod.CartDrawer })), {
+  ssr: false,
+  loading: () => null
+})
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,6 +43,7 @@ export default function RootLayout({
           <Providers>
             <CartProvider>
             <SplashScreen />
+            <PageLoader />
             
             {/* Logo flotante centrado */}
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
@@ -55,7 +62,7 @@ export default function RootLayout({
             <CartDrawer />
             
             {/* Main Content */}
-            <main className="min-h-screen">
+            <main className="min-h-screen transition-opacity duration-200 ease-in-out">
               {children}
             </main>
             
@@ -64,7 +71,6 @@ export default function RootLayout({
                 <p>&copy; 2025 Tribu Mala. Streetwear Premium. Todos los derechos reservados.</p>
               </div>
             </footer>
-            <CustomCursor />
             </CartProvider>
           </Providers>
         </ThemeProvider>

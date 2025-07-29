@@ -58,9 +58,7 @@ export function OrderStatusManager({
   ]
 
   const fulfillmentStatuses = [
-    { value: 'PENDING', label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', icon: Clock },
     { value: 'CONFIRMED', label: 'Confirmado', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: CheckCircle },
-    { value: 'PROCESSING', label: 'Procesando', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', icon: Package },
     { value: 'SHIPPED', label: 'Enviado', color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20', icon: Truck },
     { value: 'DELIVERED', label: 'Entregado', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: CheckCircle },
     { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle }
@@ -195,7 +193,7 @@ export function OrderStatusManager({
           <div className="space-y-2">
             <label className="text-sm font-medium">Progreso:</label>
             <div className="space-y-2">
-              {fulfillmentStatuses.slice(0, 5).map((status, index) => {
+              {fulfillmentStatuses.slice(0, 3).map((status, index) => {
                 const StatusIcon = status.icon
                 const isCurrent = status.value === currentStatus
                 const isPast = fulfillmentStatuses.findIndex(s => s.value === currentStatus) > index

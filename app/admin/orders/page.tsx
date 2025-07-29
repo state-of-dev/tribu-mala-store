@@ -110,6 +110,19 @@ export default function AdminOrders() {
     }
   }
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'PENDING': return 'Pendiente'
+      case 'CONFIRMED': return 'Confirmado'
+      case 'PROCESSING': return 'Procesando'
+      case 'SHIPPED': return 'Enviado'
+      case 'DELIVERED': return 'Entregado'
+      case 'CANCELLED': return 'Cancelado'
+      case 'RETURNED': return 'Devuelto'
+      default: return status
+    }
+  }
+
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'PAID': return 'bg-green-500/10 text-green-500 border-green-500/20'
@@ -117,6 +130,16 @@ export default function AdminOrders() {
       case 'FAILED': return 'bg-red-500/10 text-red-500 border-red-500/20'
       case 'REFUNDED': return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
       default: return 'bg-muted text-muted-foreground'
+    }
+  }
+
+  const getPaymentStatusText = (status: string) => {
+    switch (status) {
+      case 'PAID': return 'Pagado'
+      case 'PENDING': return 'Pendiente'
+      case 'FAILED': return 'Fallido'
+      case 'REFUNDED': return 'Reembolsado'
+      default: return status
     }
   }
 
@@ -354,10 +377,10 @@ export default function AdminOrders() {
                           <div className="flex items-center gap-3">
                             <p className="font-semibold text-lg">{order.orderNumber}</p>
                             <Badge className={`${getStatusColor(order.status)} text-xs font-medium border`}>
-                              {order.status}
+                              {getStatusText(order.status)}
                             </Badge>
                             <Badge className={`${getPaymentStatusColor(order.paymentStatus)} text-xs font-medium border`}>
-                              {order.paymentStatus}
+                              {getPaymentStatusText(order.paymentStatus)}
                             </Badge>
                           </div>
                           

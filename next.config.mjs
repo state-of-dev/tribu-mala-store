@@ -68,11 +68,22 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  poweredByHeader: false,
+  reactStrictMode: true,
+  output: 'standalone',
 }
 
 export default nextConfig

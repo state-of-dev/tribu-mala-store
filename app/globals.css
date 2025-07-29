@@ -8,22 +8,15 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+/* Performance optimizations */
+* {
+  scroll-behavior: smooth;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
-  cursor: none;
-}
-
-/* Custom inverse cursor */
-.custom-cursor {
-  width: 20px;
-  height: 20px;
-  border: 2px solid white;
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
+  will-change: scroll-position;
 }
 
 /* Inverse text selection */
@@ -32,21 +25,29 @@ body {
   color: #0a0a0a;
 }
 
-/* Click animation */
-@keyframes click {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.5);
-  }
-  100% {
-    transform: scale(1);
+/* Performance improvements */
+.page-transition {
+  transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: no-preference) {
+  .smooth-transition {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-.cursor-click {
-  animation: click 0.3s ease-in-out;
+@media (prefers-reduced-motion: reduce) {
+  .smooth-transition {
+    transition: none;
+  }
+}
+
+/* Improve render performance */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 

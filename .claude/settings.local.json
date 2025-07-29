@@ -34,7 +34,10 @@
       "Bash(git stash:*)",
       "Bash(true)",
       "Bash(openssl rand:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(tasklist:*)",
+      "WebFetch(domain:tribu-mala-store.vercel.app)"
     ],
     "deny": []
   }

@@ -46,6 +46,8 @@ export default function SignUpPage() {
     }
 
     try {
+      console.log("🚀 Iniciando registro de usuario:", formData.email)
+      
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -58,7 +60,11 @@ export default function SignUpPage() {
         }),
       })
 
+      console.log("📡 Response status:", response.status)
+      console.log("📡 Response ok:", response.ok)
+
       const data = await response.json()
+      console.log("📡 Response data:", data)
 
       if (!response.ok) {
         throw new Error(data.error || "Error al crear la cuenta")
@@ -117,7 +123,6 @@ export default function SignUpPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="bg-dark-700"
               placeholder="Tu nombre"
             />
           </div>
@@ -131,7 +136,6 @@ export default function SignUpPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="bg-dark-700"
               placeholder="tu@email.com"
             />
           </div>
@@ -145,7 +149,6 @@ export default function SignUpPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="bg-dark-700"
               placeholder="••••••••"
               minLength={6}
             />
@@ -160,7 +163,6 @@ export default function SignUpPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="bg-dark-700"
               placeholder="••••••••"
               minLength={6}
             />

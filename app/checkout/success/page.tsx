@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,7 +17,7 @@ interface OrderDetails {
   paymentStatus: string
 }
 
-export default function SuccessPage() {
+function SuccessPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderNumber = searchParams.get("order")
@@ -203,5 +203,24 @@ export default function SuccessPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-20 pb-12 px-4 bg-dark-900">
+        <div className="max-w-2xl mx-auto">
+          <Card className="bg-dark-800 border-dark-600">
+            <CardContent className="p-8 text-center">
+              <Loader2 className="w-16 h-16 text-white mx-auto mb-4 animate-spin" />
+              <h1 className="text-2xl font-bold text-white mb-2">Cargando...</h1>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <SuccessPageInner />
+    </Suspense>
   )
 }
