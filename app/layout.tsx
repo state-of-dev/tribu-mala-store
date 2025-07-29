@@ -50,13 +50,19 @@ export default function RootLayout({
               <Logo />
             </div>
             
-            {/* Auth flotante esquina superior derecha */}
-            <div className="fixed top-4 right-20 z-50">
+            {/* Auth - desktop en esquina, mobile al lado del logo */}
+            <div className="fixed top-4 right-16 sm:right-20 z-50 sm:block hidden">
+              <AuthNav variant="header" />
+            </div>
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 -translate-x-32 z-50 sm:hidden">
               <AuthNav variant="header" />
             </div>
             
-            {/* Cart Icon */}
-            <div className="fixed top-4 right-4 z-50">
+            {/* Cart Icon - desktop en esquina, mobile al lado del logo */}
+            <div className="fixed top-4 right-4 z-50 sm:block hidden">
+              <CartIcon />
+            </div>
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 translate-x-20 z-50 sm:hidden">
               <CartIcon />
             </div>
             <CartDrawer />

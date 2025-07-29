@@ -24,18 +24,24 @@ model User {
   birthDate     DateTime?
   
   // Shipping Address
-  address       String?
+  street        String?
+  number        String?
+  interior      String?
+  neighborhood  String?
   city          String?
   state         String?
   zip           String?
   country       String?   @default("México")
   
   // Billing Address
-  billingAddress String?
-  billingCity    String?
-  billingState   String?
-  billingZip     String?
-  billingCountry String?
+  billingStreet       String?
+  billingNumber       String?
+  billingInterior     String?
+  billingNeighborhood String?
+  billingCity         String?
+  billingState        String?
+  billingZip          String?
+  billingCountry      String?   @default("México")
   
   // Stripe Integration
   stripeCustomerId String?  @unique

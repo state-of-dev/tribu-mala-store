@@ -3,6 +3,7 @@
 import { useAuthStatus } from "@/hooks/use-auth-status"
 import { AuthNavProps } from "@/types/navigation"
 import { LoginButton } from "@/components/auth/login-button"
+import { LoginIcon } from "@/components/auth/login-icon"
 import { UserAvatar } from "@/components/auth/user-avatar"
 import { AuthStatus } from "@/components/auth/auth-status"
 import { cn } from "@/lib/utils"
@@ -31,11 +32,15 @@ export function AuthNav({ className, variant = "header" }: AuthNavProps) {
   if (!isAuthenticated) {
     return (
       <div className={baseClasses}>
-        <LoginButton 
-          variant={variant === "header" ? "default" : "outline"}
-          size={variant === "mobile" ? "sm" : "default"}
-          className={variant === "mobile" ? "w-full" : ""}
-        />
+        {variant === "header" ? (
+          <LoginIcon />
+        ) : (
+          <LoginButton 
+            variant={variant === "header" ? "default" : "outline"}
+            size={variant === "mobile" ? "sm" : "default"}
+            className={variant === "mobile" ? "w-full" : ""}
+          />
+        )}
       </div>
     )
   }

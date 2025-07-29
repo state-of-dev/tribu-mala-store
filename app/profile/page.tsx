@@ -9,43 +9,36 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { User, Mail, MapPin, Phone, Save, Loader2, CreditCard, Plus, Trash2, Calendar } from "lucide-react"
-
-interface PaymentMethod {
-  id: string
-  last4: string
-  brand: string
-  expiryMonth: number
-  expiryYear: number
-  isDefault: boolean
-  nickname?: string
-}
+import { User, Mail, MapPin, Phone, Save, Loader2 } from "lucide-react"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     name: session?.user?.name || "",
     email: session?.user?.email || "",
     phone: "",
-    birthDate: "",
     // Shipping Address
-    address: "",
+    street: "",
+    number: "",
+    interior: "",
+    neighborhood: "",
     city: "",
     state: "",
     zip: "",
     country: "México",
     // Billing Address
-    billingAddress: "",
+    billingStreet: "",
+    billingNumber: "",
+    billingInterior: "",
+    billingNeighborhood: "",
     billingCity: "",
     billingState: "",
     billingZip: "",
-    billingCountry: "",
+    billingCountry: "México",
     // Preferences
     savePaymentMethods: false,
     defaultShipping: true
@@ -64,7 +57,6 @@ export default function ProfilePage() {
             ...prev,
             ...userData
           }))
-          setPaymentMethods(userData.paymentMethods || [])
         }
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -124,443 +116,250 @@ export default function ProfilePage() {
     }
   }
 
-  const addPaymentMethod = async () => {
-    // This would integrate with Stripe to add a new payment method
-    console.log('Adding payment method...')
-  }
-
-  const removePaymentMethod = async (methodId: string) => {
-    try {
-      const response = await fetch(`/api/user/payment-methods/${methodId}`, {
-        method: 'DELETE',
-      })
-      
-      if (response.ok) {
-        setPaymentMethods(prev => prev.filter(pm => pm.id !== methodId))
-      }
-    } catch (error) {
-      console.error('Error removing payment method:', error)
-    }
-  }
-
-  const setDefaultPaymentMethod = async (methodId: string) => {
-    try {
-      const response = await fetch(`/api/user/payment-methods/${methodId}/default`, {
-        method: 'PUT',
-      })
-      
-      if (response.ok) {
-        setPaymentMethods(prev => prev.map(pm => ({
-          ...pm,
-          isDefault: pm.id === methodId
-        })))
-      }
-    } catch (error) {
-      console.error('Error setting default payment method:', error)
-    }
-  }
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Mi Perfil</h1>
-          <p className="text-gray-400">Administra tu información personal, direcciones y métodos de pago</p>
+          <p className="text-gray-400">Administra tu información personal y direcciones de envío</p>
         </div>
 
-        <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">Información Personal</TabsTrigger>
-            <TabsTrigger value="addresses">Direcciones</TabsTrigger>
-            <TabsTrigger value="payments">Métodos de Pago</TabsTrigger>
-          </TabsList>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Información Personal */}
+          <Card className="bg-dark-800 border-dark-600">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <User className="mr-2 h-5 w-5" />
+                Información Personal
+              </CardTitle>
+              <CardDescription>
+                Datos básicos de tu cuenta
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  name="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="Nombre"
+                />
+                <Input
+                  name="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="Apellidos"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Email"
+                  disabled
+                />
+                <Input
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Teléfono"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="personal">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Card className="bg-dark-800 border-dark-600">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white">
-                    <User className="mr-2 h-5 w-5" />
-                    Información Personal
-                  </CardTitle>
-                  <CardDescription>
-                    Datos básicos de tu cuenta
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Nombre</Label>
+          {/* Dirección de Envío */}
+          <Card className="bg-dark-800 border-dark-600">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <MapPin className="mr-2 h-5 w-5" />
+                Dirección de Envío
+              </CardTitle>
+              <CardDescription>
+                Dirección predeterminada para tus pedidos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <Input
+                    name="street"
+                    type="text"
+                    value={formData.street}
+                    onChange={handleChange}
+                    placeholder="Calle"
+                  />
+                </div>
+                <Input
+                  name="number"
+                  type="text"
+                  value={formData.number}
+                  onChange={handleChange}
+                  placeholder="Número"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  name="interior"
+                  type="text"
+                  value={formData.interior}
+                  onChange={handleChange}
+                  placeholder="Interior (opcional)"
+                />
+                <Input
+                  name="neighborhood"
+                  type="text"
+                  value={formData.neighborhood}
+                  onChange={handleChange}
+                  placeholder="Colonia"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  name="city"
+                  type="text"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="Ciudad"
+                />
+                <Input
+                  name="state"
+                  type="text"
+                  value={formData.state}
+                  onChange={handleChange}
+                  placeholder="Estado"
+                />
+                <Input
+                  name="zip"
+                  type="text"
+                  value={formData.zip}
+                  onChange={handleChange}
+                  placeholder="Código Postal"
+                />
+              </div>
+              <div className="bg-gray-700/50 rounded-lg p-3">
+                <span className="text-gray-300 text-sm font-medium">País: México</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Dirección de Facturación */}
+          <Card className="bg-dark-800 border-dark-600">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <Mail className="mr-2 h-5 w-5" />
+                Dirección de Facturación
+              </CardTitle>
+              <CardDescription>
+                Dirección para facturación (opcional si es diferente al envío)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="defaultShipping"
+                  name="defaultShipping"
+                  checked={formData.defaultShipping}
+                  onChange={(e) => setFormData(prev => ({ ...prev, defaultShipping: e.target.checked }))}
+                  className="rounded"
+                />
+                <Label htmlFor="defaultShipping">Usar dirección de envío como facturación</Label>
+              </div>
+              
+              {!formData.defaultShipping && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
                       <Input
-                        id="firstName"
-                        name="firstName"
+                        name="billingStreet"
                         type="text"
-                        value={formData.firstName}
+                        value={formData.billingStreet}
                         onChange={handleChange}
-                        placeholder="Tu nombre"
+                        placeholder="Calle"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Apellidos</Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Tus apellidos"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="tu@email.com"
-                        disabled
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+52 55 1234 5678"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate">Fecha de nacimiento</Label>
                     <Input
-                      id="birthDate"
-                      name="birthDate"
-                      type="date"
-                      value={formData.birthDate}
+                      name="billingNumber"
+                      type="text"
+                      value={formData.billingNumber}
                       onChange={handleChange}
+                      placeholder="Número"
                     />
                   </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="min-w-[150px]"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Guardar Cambios
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="addresses">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Dirección de Envío */}
-              <Card className="bg-dark-800 border-dark-600">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white">
-                    <MapPin className="mr-2 h-5 w-5" />
-                    Dirección de Envío
-                  </CardTitle>
-                  <CardDescription>
-                    Dirección predeterminada para tus pedidos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Dirección</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      id="address"
-                      name="address"
+                      name="billingInterior"
                       type="text"
-                      value={formData.address}
+                      value={formData.billingInterior}
                       onChange={handleChange}
-                      placeholder="Calle, número, colonia"
+                      placeholder="Interior (opcional)"
+                    />
+                    <Input
+                      name="billingNeighborhood"
+                      type="text"
+                      value={formData.billingNeighborhood}
+                      onChange={handleChange}
+                      placeholder="Colonia"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Ciudad</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        type="text"
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder="Ciudad"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">Estado</Label>
-                      <Input
-                        id="state"
-                        name="state"
-                        type="text"
-                        value={formData.state}
-                        onChange={handleChange}
-                        placeholder="Estado"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zip">Código Postal</Label>
-                      <Input
-                        id="zip"
-                        name="zip"
-                        type="text"
-                        value={formData.zip}
-                        onChange={handleChange}
-                        placeholder="12345"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">País</Label>
                     <Input
-                      id="country"
-                      name="country"
+                      name="billingCity"
                       type="text"
-                      value={formData.country}
+                      value={formData.billingCity}
                       onChange={handleChange}
-                      placeholder="México"
+                      placeholder="Ciudad"
+                    />
+                    <Input
+                      name="billingState"
+                      type="text"
+                      value={formData.billingState}
+                      onChange={handleChange}
+                      placeholder="Estado"
+                    />
+                    <Input
+                      name="billingZip"
+                      type="text"
+                      value={formData.billingZip}
+                      onChange={handleChange}
+                      placeholder="Código Postal"
                     />
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Dirección de Facturación */}
-              <Card className="bg-dark-800 border-dark-600">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white">
-                    <Mail className="mr-2 h-5 w-5" />
-                    Dirección de Facturación
-                  </CardTitle>
-                  <CardDescription>
-                    Dirección para facturación (opcional si es diferente al envío)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="defaultShipping"
-                      name="defaultShipping"
-                      checked={formData.defaultShipping}
-                      onChange={(e) => setFormData(prev => ({ ...prev, defaultShipping: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <Label htmlFor="defaultShipping">Usar dirección de envío como facturación</Label>
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <span className="text-gray-300 text-sm font-medium">País: México</span>
                   </div>
-                  
-                  {!formData.defaultShipping && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="billingAddress">Dirección de facturación</Label>
-                        <Input
-                          id="billingAddress"
-                          name="billingAddress"
-                          type="text"
-                          value={formData.billingAddress}
-                          onChange={handleChange}
-                            placeholder="Calle, número, colonia"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="billingCity">Ciudad</Label>
-                          <Input
-                            id="billingCity"
-                            name="billingCity"
-                            type="text"
-                            value={formData.billingCity}
-                            onChange={handleChange}
-                                placeholder="Ciudad"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="billingState">Estado</Label>
-                          <Input
-                            id="billingState"
-                            name="billingState"
-                            type="text"
-                            value={formData.billingState}
-                            onChange={handleChange}
-                                placeholder="Estado"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="billingZip">Código Postal</Label>
-                          <Input
-                            id="billingZip"
-                            name="billingZip"
-                            type="text"
-                            value={formData.billingZip}
-                            onChange={handleChange}
-                                placeholder="12345"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="billingCountry">País</Label>
-                        <Input
-                          id="billingCountry"
-                          name="billingCountry"
-                          type="text"
-                          value={formData.billingCountry}
-                          onChange={handleChange}
-                            placeholder="México"
-                        />
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                </>
+              )}
+            </CardContent>
+          </Card>
 
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="min-w-[150px]"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Guardar Direcciones
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="payments">
-            <div className="space-y-6">
-              {/* Métodos de Pago Guardados */}
-              <Card className="bg-dark-800 border-dark-600">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-white">
-                    <div className="flex items-center">
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      Métodos de Pago
-                    </div>
-                    <Button onClick={addPaymentMethod} size="sm">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Agregar Tarjeta
-                    </Button>
-                  </CardTitle>
-                  <CardDescription>
-                    Administra tus métodos de pago para compras rápidas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {paymentMethods.length > 0 ? (
-                    <div className="space-y-3">
-                      {paymentMethods.map((method) => (
-                        <div key={method.id} className="flex items-center justify-between p-4 border border-dark-600 rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center">
-                              <CreditCard className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-white font-medium">
-                                  {method.brand.toUpperCase()} •••• {method.last4}
-                                </span>
-                                {method.isDefault && (
-                                  <Badge variant="secondary">Predeterminada</Badge>
-                                )}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                Expira {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
-                                {method.nickname && ` • ${method.nickname}`}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {!method.isDefault && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDefaultPaymentMethod(method.id)}
-                              >
-                                Hacer predeterminada
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePaymentMethod(method.id)}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <CreditCard className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-400 mb-4">No tienes métodos de pago guardados</p>
-                      <Button onClick={addPaymentMethod}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Agregar tu primera tarjeta
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Preferencias de Pago */}
-              <Card className="bg-dark-800 border-dark-600">
-                <CardHeader>
-                  <CardTitle className="text-white">Preferencias</CardTitle>
-                  <CardDescription>
-                    Configura tus preferencias de pago
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="savePaymentMethods"
-                      name="savePaymentMethods"
-                      checked={formData.savePaymentMethods}
-                      onChange={(e) => setFormData(prev => ({ ...prev, savePaymentMethods: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <Label htmlFor="savePaymentMethods">
-                      Guardar automáticamente nuevos métodos de pago para compras futuras
-                    </Label>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="min-w-[150px]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar Perfil
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

@@ -67,18 +67,40 @@ export default function CheckoutPage() {
       
       if (response.ok) {
         const data = await response.json()
+        console.log("📡 Respuesta del API:", data)
         
-        if (data.success && data.user) {
+        if (data.success) {
+          const user = data
+          const fullName = user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.name || ""
+            
+          // Construir dirección completa desde campos separados
+          const fullAddress = [
+            user.street,
+            user.number,
+            user.interior,
+            user.neighborhood
+          ].filter(Boolean).join(" ")
+          
+          const newFormData = {
+            email: user.email || "",
+            name: fullName,
+            phone: user.phone || "", 
+            address: fullAddress || "",
+            city: user.city || "",
+            state: user.state || "",
+            zip: user.zip || "",
+            country: user.country || "México"
+          }
+          
+          console.log("🏠 Datos a pre-llenar:", newFormData)
+          
           setFormData(prev => ({
             ...prev,
-            email: data.user.email || "",
-            name: data.user.name || "",
-            address: data.user.address || "",
-            city: data.user.city || "",
-            zip: data.user.zip || "",
-            country: data.user.country || "México"
+            ...newFormData
           }))
-          console.log("✅ Datos de usuario pre-llenados")
+          console.log("✅ Datos completos de perfil pre-llenados")
         }
       }
     } catch (error) {
