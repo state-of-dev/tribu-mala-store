@@ -57,64 +57,64 @@ export default function CheckoutPage() {
   }, [items, router])
 
   // Pre-fill form with user data if authenticated
-  // useEffect(() => {
-  //   if (session?.user) {
-  //     fetchUserProfile()
-  //   }
-  // }, [session])
+  useEffect(() => {
+    if (session?.user) {
+      fetchUserProfile()
+    }
+  }, [session])
 
-  // const fetchUserProfile = async () => {
-  //   try {
-  //     const response = await fetch('/api/user/profile')
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile')
       
-  //     if (response.ok) {
-  //       const data = await response.json()
-  //       console.log("📡 Respuesta del API:", data)
+      if (response.ok) {
+        const data = await response.json()
+        console.log("📡 Respuesta del API:", data)
         
-  //       if (data.success) {
-  //         const user = data
-  //         const fullName = user.firstName && user.lastName 
-  //           ? `${user.firstName} ${user.lastName}` 
-  //           : user.name || ""
+        if (data.success) {
+          const user = data
+          const fullName = user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.name || ""
             
-  //         // Construir dirección completa desde campos separados
-  //         const fullAddress = [
-  //           user.street,
-  //           user.number,
-  //           user.interior,
-  //           user.neighborhood
-  //         ].filter(Boolean).join(" ")
+          // Construir dirección completa desde campos separados
+          const fullAddress = [
+            user.street,
+            user.number,
+            user.interior,
+            user.neighborhood
+          ].filter(Boolean).join(" ")
           
-  //         const newFormData = {
-  //           email: user.email || "",
-  //           name: fullName,
-  //           phone: user.phone || "", 
-  //           address: fullAddress || "",
-  //           city: user.city || "",
-  //           state: user.state || "",
-  //           zip: user.zip || "",
-  //           country: user.country || "México"
-  //         }
+          const newFormData = {
+            email: user.email || "",
+            name: fullName,
+            phone: user.phone || "", 
+            address: fullAddress || "",
+            city: user.city || "",
+            state: user.state || "",
+            zip: user.zip || "",
+            country: user.country || "México"
+          }
           
-  //         console.log("🏠 Datos a pre-llenar:", newFormData)
+          console.log("🏠 Datos a pre-llenar:", newFormData)
           
-  //         setFormData(prev => ({
-  //           ...prev,
-  //           ...newFormData
-  //         }))
-  //         console.log("✅ Datos completos de perfil pre-llenados")
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Error cargando perfil:", error)
-  //     // Fallback a datos básicos de sesión
-  //     setFormData(prev => ({
-  //       ...prev,
-  //       email: session?.user?.email || "",
-  //       name: session?.user?.name || ""
-  //     }))
-  //   }
-  // }
+          setFormData(prev => ({
+            ...prev,
+            ...newFormData
+          }))
+          console.log("✅ Datos completos de perfil pre-llenados")
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error cargando perfil:", error)
+      // Fallback a datos básicos de sesión
+      setFormData(prev => ({
+        ...prev,
+        email: session?.user?.email || "",
+        name: session?.user?.name || ""
+      }))
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -432,7 +432,13 @@ export default function CheckoutPage() {
                       Conectado como {session.user?.name || session.user?.email}
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-3">
+                    <div className="text-blue-400 text-sm text-center">
+                      💡 <Link href="/auth/signin" className="underline">Inicia sesión</Link> para pre-llenar tus datos
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
