@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
 import { compare } from "bcryptjs"
+import { sendWelcomeEmail } from "./email"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -47,7 +48,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        console.log("✅ Usuario autenticado:", {
+        console.log("Usuario autenticado:", {
           id: user.id,
           email: user.email,
           name: user.name
@@ -64,6 +65,23 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
+    async signIn({ user, account, profile, isNewUser }) {
+      // Enviar email de bienvenida para nuevos usuarios de Google
+      if (isNewUser && account?.provider === "google" && user.email && user.name) {
+        try {
+          console.log("Enviando email de bienvenida a nuevo usuario de Google:", user.email)
+          await sendWelcomeEmail({
+            userName: user.name,
+            userEmail: user.email
+          })
+          console.log("Email de bienvenida enviado exitosamente a:", user.email)
+        } catch (error) {
+          console.error("Error enviando email de bienvenida:", error)
+          // No bloquear el signin si falla el email
+        }
+      }
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
