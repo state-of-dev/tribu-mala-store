@@ -45,7 +45,14 @@ export default function SignInPage() {
   }
 
   const handleGoogleSignIn = () => {
+    console.log("🔍 Iniciando auth con Google...")
     signIn("google", { callbackUrl: "/" })
+      .then((result) => {
+        console.log("✅ Google auth result:", result)
+      })
+      .catch((error) => {
+        console.error("❌ Error en Google auth:", error)
+      })
   }
 
   return (
