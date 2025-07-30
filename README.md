@@ -27,19 +27,19 @@
 - **Responsive design** optimizado para mobile y desktop
 
 ###  **Sistema de Usuarios Avanzado**
-- **Autenticación completa** con NextAuth.js
+- **Autenticación completa** con NextAuth.js + Google OAuth
 - **Perfiles de usuario** con información personal y direcciones detalladas
 - **Sistema de roles** (Customer, Admin, Super Admin)
 - **Recuperación de contraseñas** con tokens seguros
 - **Pre-llenado automático** de checkout con datos del perfil
-- **Direcciones separadas** (calle, número, interior, colonia)
+- **Direcciones mexicanas completas** (calle, número, interior, colonia, estado)
 
 ###  **Panel de Administración**
 - **Dashboard completo** con métricas y analytics
-- **Gestión de productos** (crear, editar, eliminar)
-- **Gestión de órdenes** con cambios de estado
-- **Gestión de usuarios** y roles
-- **Timeline visual** de estados de pedidos
+- **Gestión de productos** (crear, editar, eliminar) con imágenes múltiples
+- **Gestión de órdenes** con cambios de estado y timeline visual
+- **Gestión de usuarios** con estadísticas de compras
+- **Sistema de notificaciones** por email automático
 
 ###  **Sistema de Emails Robusto**
 - **Confirmación de compras** con detalles completos
@@ -49,11 +49,11 @@
 - **Templates HTML responsivos** con branding consistente
 
 ###  **Pagos y Finanzas**
-- **Integración Stripe completa** con webhooks
+- **Integración Stripe completa** con webhooks y elementos nativos
 - **Soporte para MXN** (pesos mexicanos)
 - **Estados duales** (Payment Status + Order Status)
-- **Reintentos de pago** para transacciones fallidas
-- **Reportes financieros** básicos
+- **Checkout optimizado** con pre-llenado automático
+- **UI responsiva** con estilos consistentes del sistema
 
 ##  Stack Tecnológico
 
@@ -71,10 +71,27 @@
 - **NextAuth.js** - Autenticación y sesiones
 
 ### **Servicios Externos**
-- **Stripe** - Procesamiento de pagos
-- **Resend** - Envío de emails transaccionales
-- **Vercel** - Deployment y hosting
-- **Neon** - Base de datos PostgreSQL en la nube
+- **Stripe** - Procesamiento de pagos con elementos nativos
+- **Resend** - Envío de emails transaccionales con templates HTML
+- **Google OAuth** - Autenticación social integrada
+- **Vercel** - Deployment y hosting con auto-deploy
+- **Neon** - Base de datos PostgreSQL serverless
+
+## ⚡ **Optimizaciones de Rendimiento**
+
+### **UI/UX Optimizada**
+- **Botones ultra-responsivos** sin estados de loading innecesarios
+- **Skeleton loading 2x más rápido** para mejor percepción de velocidad
+- **Autofill personalizado** que respeta el tema del sistema
+- **Transiciones suaves** sin recargas innecesarias
+- **Mobile-first** con navegación intuitiva
+
+### **Rendimiento Técnico**
+- **Next.js 14** con App Router optimizado
+- **Componentes lazy-loaded** con dynamic imports
+- **Imágenes optimizadas** con formatos WebP/AVIF
+- **Bundle splitting** automático para menor carga inicial
+- **Edge functions** para latencia mínima
 
 ##  Instalación y Configuración
 

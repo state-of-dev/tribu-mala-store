@@ -11,18 +11,41 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const featured = searchParams.get('featured')
     const limit = searchParams.get('limit')
+    const search = searchParams.get('search')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
 
     const where: any = {
       isActive: true, // Solo productos activos
     }
 
     // Filtros opcionales
-    if (category) {
+    if (category && category !== 'all') {
       where.category = category
     }
 
     if (featured === 'true') {
       where.isFeatured = true
+    }
+
+    // Búsqueda por texto
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    // Filtro por rango de precio
+    if (minPrice || maxPrice) {
+      where.price = {}
+      if (minPrice) {
+        where.price.gte = parseFloat(minPrice)
+      }
+      if (maxPrice) {
+        where.price.lte = parseFloat(maxPrice)
+      }
     }
 
     const products = await prisma.product.findMany({

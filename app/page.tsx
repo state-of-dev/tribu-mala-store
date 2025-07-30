@@ -34,6 +34,7 @@ interface Product {
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
+  const [allCategories, setAllCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
@@ -46,7 +47,26 @@ export default function Home() {
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/products?limit=20') // Cargar más productos para filtrar
+      
+      // Construir parámetros de búsqueda
+      const params = new URLSearchParams()
+      params.append('limit', '50') // Más productos para tener mejor filtrado
+      
+      if (searchTerm) {
+        params.append('search', searchTerm)
+      }
+      
+      if (selectedCategory && selectedCategory !== 'all') {
+        params.append('category', selectedCategory)
+      }
+      
+      if (priceRange) {
+        const [min, max] = priceRange.split('-').map(Number)
+        if (min) params.append('minPrice', min.toString())
+        if (max) params.append('maxPrice', max.toString())
+      }
+      
+      const response = await fetch(`/api/products?${params.toString()}`)
       
       if (!response.ok) {
         throw new Error('Error al cargar productos')
@@ -65,43 +85,47 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+  }, [searchTerm, selectedCategory, priceRange])
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch('/api/products?limit=1000') // Obtener todos los productos para extraer categorías
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          const categories = [...new Set(data.products.map((p: Product) => p.category).filter(Boolean))] as string[]
+          setAllCategories(categories)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
   }, [])
 
   useEffect(() => {
     fetchProducts()
-  }, [fetchProducts])
+    fetchCategories()
+  }, [])
 
-  // Memoized filtered products for better performance
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products]
-
-    // Search filter
+  // Debounce para la búsqueda en tiempo real
+  useEffect(() => {
     if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    }
+      const timeoutId = setTimeout(() => {
+        fetchProducts()
+      }, 300) // 300ms delay
 
-    // Category filter
-    if (selectedCategory && selectedCategory !== "all") {
-      filtered = filtered.filter(product => product.category === selectedCategory)
+      return () => clearTimeout(timeoutId)
     }
+  }, [searchTerm])
 
-    // Price range filter
-    if (priceRange) {
-      const [min, max] = priceRange.split('-').map(Number)
-      filtered = filtered.filter(product => {
-        if (max) {
-          return product.price >= min && product.price <= max
-        } else {
-          return product.price >= min
-        }
-      })
-    }
+  // Fetch inmediato para filtros de categoría y precio
+  useEffect(() => {
+    fetchProducts()
+  }, [selectedCategory, priceRange])
 
-    return filtered
-  }, [products, searchTerm, selectedCategory, priceRange])
+  // Los productos ya vienen filtrados desde la API
+  const filteredProducts = products
 
   const clearFilters = () => {
     setSearchTerm("")
@@ -110,8 +134,7 @@ export default function Home() {
   }
 
   const getUniqueCategories = () => {
-    const categories = products.map(p => p.category).filter(Boolean)
-    return [...new Set(categories)] as string[]
+    return allCategories
   }
 
   const hasActiveFilters = searchTerm || selectedCategory || priceRange
@@ -232,7 +255,11 @@ export default function Home() {
 
             {/* Results Count */}
             <div className="text-sm text-muted-foreground">
-              Mostrando {filteredProducts.length} de {products.length} productos
+              {hasActiveFilters ? (
+                `Encontrados ${filteredProducts.length} productos${searchTerm ? ` para "${searchTerm}"` : ''}`
+              ) : (
+                `Mostrando ${filteredProducts.length} productos`
+              )}
             </div>
           </div>
           
