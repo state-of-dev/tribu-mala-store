@@ -62,8 +62,8 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -75,12 +75,12 @@ export default function SignInPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Contraseña</Label>
               <Link 
                 href="/auth/forgot-password" 
-                className="text-sm text-blue-400 hover:text-blue-300"
+                className="text-sm text-primary hover:text-primary/80"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -146,9 +146,9 @@ export default function SignInPage() {
         </div>
 
         <div className="text-center mt-6">
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             ¿No tienes cuenta?{" "}
-            <Link href="/auth/signup" className="text-blue-400 hover:text-blue-300">
+            <Link href="/auth/signup" className="text-primary hover:text-primary/80">
               Regístrate aquí
             </Link>
           </p>

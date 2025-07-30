@@ -113,8 +113,8 @@ export default function SignUpPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
             <Label htmlFor="name">Nombre completo</Label>
             <Input
               id="name"
@@ -127,7 +127,7 @@ export default function SignUpPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -140,7 +140,7 @@ export default function SignUpPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
@@ -154,7 +154,7 @@ export default function SignUpPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
             <Input
               id="confirmPassword"
@@ -181,9 +181,9 @@ export default function SignUpPage() {
         </form>
 
         <div className="text-center mt-6">
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/auth/signin" className="text-blue-400 hover:text-blue-300">
+            <Link href="/auth/signin" className="text-primary hover:text-primary/80">
               Inicia sesión aquí
             </Link>
           </p>
