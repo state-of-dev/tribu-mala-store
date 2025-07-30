@@ -18,7 +18,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
-import { User, Settings, ShoppingBag, ChevronDown, CreditCard, Bell, LogOut } from "lucide-react"
+import { User, Settings, ShoppingBag, ChevronDown, CreditCard, Bell, LogOut, BarChart3 } from "lucide-react"
 import Link from "next/link"
 
 export function UserAvatar({ 
@@ -106,6 +106,14 @@ export function UserAvatar({
               Mis Pedidos
             </Link>
           </DropdownMenuItem>
+          {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Dashboard
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
             {/* <Link href="/payment-methods">
               <CreditCard className="mr-2 h-4 w-4" />
