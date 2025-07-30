@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function SignUpPage() {
@@ -17,9 +18,13 @@ export default function SignUpPage() {
   })
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Reset error when user starts typing
+    if (error) setError("")
+    
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -28,21 +33,27 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Reset states
     setError("")
+    setSuccess(false)
+    setIsLoading(true)
 
     // Validaciones
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden")
+      setIsLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres")
+      setIsLoading(false)
       return
     }
 
     try {
-      console.log("🚀 Iniciando registro de usuario:", formData.email)
+      console.log("Iniciando registro de usuario:", formData.email)
       
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -56,17 +67,17 @@ export default function SignUpPage() {
         }),
       })
 
-      console.log("📡 Response status:", response.status)
-      console.log("📡 Response ok:", response.ok)
-
       const data = await response.json()
-      console.log("📡 Response data:", data)
+      console.log("Response data:", data)
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear la cuenta")
+        setIsLoading(false)
+        setError(data.error || "Error al crear la cuenta")
+        return
       }
 
-      console.log("✅ Usuario registrado:", data.user)
+      console.log("Usuario registrado:", data.user)
+      setIsLoading(false)
       setSuccess(true)
       
       // Redirigir a login después de 2 segundos
@@ -75,7 +86,8 @@ export default function SignUpPage() {
       }, 2000)
 
     } catch (error: any) {
-      setError(error.message)
+      setIsLoading(false)
+      setError(error.message || "Error al crear la cuenta")
     }
   }
 
@@ -87,7 +99,9 @@ export default function SignUpPage() {
     return (
       <div className="min-h-screen pt-32 pb-12 px-4">
         <div className="max-w-md mx-auto bg-dark-800 p-8 rounded-lg text-center">
-          <div className="text-green-400 text-6xl mb-4">✅</div>
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="w-16 h-16 text-green-400" />
+          </div>
           <h1 className="text-2xl font-bold mb-2 text-green-400">¡Cuenta creada!</h1>
           <p className="text-gray-400 mb-4">
             Tu cuenta ha sido creada exitosamente. Serás redirigido al login...
@@ -167,8 +181,8 @@ export default function SignUpPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Crear Cuenta
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
           </Button>
         </form>
 
@@ -187,6 +201,7 @@ export default function SignUpPage() {
             variant="outline"
             className="w-full mt-4"
             onClick={handleGoogleSignIn}
+            disabled={isLoading}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path

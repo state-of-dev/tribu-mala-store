@@ -16,10 +16,10 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendEmail({ to, subject, html }: EmailOptions) {
-  console.log(`📧 Attempting to send email to: ${to}`)
-  console.log(`📧 Subject: ${subject}`)
-  console.log(`🔑 Gmail User present: ${!!process.env.GMAIL_USER}`)
-  console.log(`🔑 Gmail App Password present: ${!!process.env.GMAIL_APP_PASSWORD}`)
+  console.log(`Attempting to send email to: ${to}`)
+  console.log(`Email Subject: ${subject}`)
+  console.log(`Gmail User present: ${!!process.env.GMAIL_USER}`)
+  console.log(`Gmail App Password present: ${!!process.env.GMAIL_APP_PASSWORD}`)
   
   try {
     const mailOptions = {
@@ -29,15 +29,15 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
       html: html
     }
 
-    console.log(`📧 Sending email from: ${process.env.GMAIL_USER}`)
-    console.log(`📧 Mail options:`, JSON.stringify(mailOptions, null, 2))
+    console.log(`Sending email from: ${process.env.GMAIL_USER}`)
+    console.log(`Mail options:`, JSON.stringify(mailOptions, null, 2))
 
     const result = await transporter.sendMail(mailOptions)
 
-    console.log('✅ Email sent successfully:', JSON.stringify(result, null, 2))
+    console.log('Email sent successfully:', JSON.stringify(result, null, 2))
     return { success: true, data: result }
   } catch (error) {
-    console.error('❌ Nodemailer Error:', error)
+    console.error('Nodemailer Error:', error)
     return { success: false, error }
   }
 }
@@ -736,8 +736,8 @@ export function generateAdminNotificationEmail(data: AdminNotificationData) {
   
   const content = `
     <div style="background: #10b981; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px; border-radius: 8px; margin: 16px 0; text-align: center;">
-      <h2 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: bold;">🎉 NUEVA VENTA CONFIRMADA</h2>
-      <p style="color: white; margin: 0; font-size: 16px; opacity: 0.9;">¡Tienes un nuevo pedido pagado exitosamente!</p>
+      <h2 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: bold;">NUEVA VENTA CONFIRMADA</h2>
+      <p style="color: white; margin: 0; font-size: 16px; opacity: 0.9;">Tienes un nuevo pedido pagado exitosamente</p>
     </div>
     
     <div class="card-highlight">
@@ -757,7 +757,7 @@ export function generateAdminNotificationEmail(data: AdminNotificationData) {
         </div>
         <div>
           <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Estado del Pago</p>
-          <p style="font-weight: 600; margin: 0; color: #10b981;">✅ PAGADO</p>
+          <p style="font-weight: 600; margin: 0; color: #10b981;">PAGADO</p>
         </div>
       </div>
     </div>
@@ -829,19 +829,19 @@ export function generateAdminNotificationEmail(data: AdminNotificationData) {
     ` : ''}
     
     <div class="card-highlight">
-      <h4>🚚 Próximos Pasos</h4>
+      <h4>Próximos Pasos</h4>
       <div style="margin: 16px 0;">
         <p style="font-size: 14px; margin: 8px 0;">
-          ✅ <strong>Paso 1:</strong> El pago ha sido procesado exitosamente por Stripe
+          <strong>Paso 1:</strong> El pago ha sido procesado exitosamente por Stripe
         </p>
         <p style="font-size: 14px; margin: 8px 0;">
-          📦 <strong>Paso 2:</strong> Preparar el pedido para envío
+          <strong>Paso 2:</strong> Preparar el pedido para envío
         </p>
         <p style="font-size: 14px; margin: 8px 0;">
-          🏷️ <strong>Paso 3:</strong> Actualizar el estado a "SHIPPED" cuando sea enviado
+          <strong>Paso 3:</strong> Actualizar el estado a "SHIPPED" cuando sea enviado
         </p>
         <p style="font-size: 14px; margin: 8px 0;">
-          📧 <strong>Paso 4:</strong> El cliente recibirá notificación automática de cada cambio
+          <strong>Paso 4:</strong> El cliente recibirá notificación automática de cada cambio
         </p>
       </div>
     </div>
@@ -854,7 +854,7 @@ export function generateAdminNotificationEmail(data: AdminNotificationData) {
     
     <div style="margin-top: 24px; padding: 16px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
       <p style="margin: 0; font-size: 14px; color: #065f46;">
-        <strong>💰 Resumen Financiero:</strong><br>
+        <strong>Resumen Financiero:</strong><br>
         • Ingreso bruto: $${total.toFixed(2)}<br>
         • Comisión Stripe (~3%): $${(total * 0.03).toFixed(2)}<br>
         • Ingreso neto estimado: $${(total * 0.97).toFixed(2)}
@@ -870,7 +870,7 @@ export async function sendAdminNotificationEmail(data: AdminNotificationData) {
   
   return await sendEmail({
     to: adminEmail,
-    subject: `🎉 Nueva Venta: $${data.total.toFixed(2)} - Pedido #${data.orderNumber}`,
+    subject: `Nueva Venta: $${data.total.toFixed(2)} - Pedido #${data.orderNumber}`,
     html: generateAdminNotificationEmail(data)
   })
 }

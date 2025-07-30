@@ -102,11 +102,11 @@ export default function CheckoutPage() {
             ...prev,
             ...newFormData
           }))
-          console.log("✅ Datos completos de perfil pre-llenados")
+          console.log("Datos completos de perfil pre-llenados")
         }
       }
     } catch (error) {
-      console.error("❌ Error cargando perfil:", error)
+      console.error("Error cargando perfil:", error)
       // Fallback a datos básicos de sesión
       setFormData(prev => ({
         ...prev,
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Error al crear la orden')
       }
 
-      console.log("✅ Orden creada:", data.order)
+      console.log("Orden creada:", data.order)
       console.log("💳 Payment Intent:", data.paymentIntent.id)
 
       // Redirigir a página de pago con el Payment Intent
