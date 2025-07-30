@@ -64,10 +64,11 @@ export function NavMenu({
   onItemClick 
 }: NavMenuProps) {
   const pathname = usePathname()
-  const { isAuthenticated } = useAuthStatus()
+  const { isAuthenticated, isLoading } = useAuthStatus()
 
+  // Durante la carga, mostrar todos los items no autenticados para evitar flash
   const filteredItems = navigationItems.filter(item => {
-    if (item.requiresAuth && !isAuthenticated) {
+    if (item.requiresAuth && !isAuthenticated && !isLoading) {
       return false
     }
     return true

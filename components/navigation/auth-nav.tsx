@@ -24,7 +24,7 @@ export function AuthNav({ className, variant = "header" }: AuthNavProps) {
   if (isLoading) {
     return (
       <div className={baseClasses}>
-        <AuthStatus showLoading={true} />
+        <div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse-fast" />
       </div>
     )
   }
