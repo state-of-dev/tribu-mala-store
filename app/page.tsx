@@ -60,7 +60,7 @@ export default function Home() {
         params.append('category', selectedCategory)
       }
       
-      if (priceRange) {
+      if (priceRange && priceRange !== 'all-prices') {
         const [min, max] = priceRange.split('-').map(Number)
         if (min) params.append('minPrice', min.toString())
         if (max) params.append('maxPrice', max.toString())
@@ -129,15 +129,15 @@ export default function Home() {
 
   const clearFilters = () => {
     setSearchTerm("")
-    setSelectedCategory("")
-    setPriceRange("")
+    setSelectedCategory("all")
+    setPriceRange("all-prices")
   }
 
   const getUniqueCategories = () => {
     return allCategories
   }
 
-  const hasActiveFilters = searchTerm || selectedCategory || priceRange
+  const hasActiveFilters = searchTerm || (selectedCategory && selectedCategory !== 'all') || (priceRange && priceRange !== 'all-prices')
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
@@ -196,8 +196,8 @@ export default function Home() {
                       <SelectContent>
                         <SelectItem value="all">Todas las categorías</SelectItem>
                         {getUniqueCategories().map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
+                          <SelectItem key={category} value={category || "unknown"}>
+                            {category || "Sin categoría"}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -212,7 +212,7 @@ export default function Home() {
                         <SelectValue placeholder="Todos los precios" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos los precios</SelectItem>
+                        <SelectItem value="all-prices">Todos los precios</SelectItem>
                         <SelectItem value="0-500">$0 - $500</SelectItem>
                         <SelectItem value="500-1000">$500 - $1,000</SelectItem>
                         <SelectItem value="1000-2000">$1,000 - $2,000</SelectItem>
