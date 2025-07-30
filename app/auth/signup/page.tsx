@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -16,7 +15,6 @@ export default function SignUpPage() {
     password: "",
     confirmPassword: ""
   })
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const router = useRouter()
@@ -30,19 +28,16 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
 
     // Validaciones
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden")
-      setIsLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres")
-      setIsLoading(false)
       return
     }
 
@@ -81,7 +76,6 @@ export default function SignUpPage() {
 
     } catch (error: any) {
       setError(error.message)
-      setIsLoading(false)
     }
   }
 
@@ -98,7 +92,7 @@ export default function SignUpPage() {
           <p className="text-gray-400 mb-4">
             Tu cuenta ha sido creada exitosamente. Serás redirigido al login...
           </p>
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-400 mx-auto"></div>
+          <div className="text-sm text-green-400">Redirigiendo...</div>
         </div>
       </div>
     )
@@ -173,15 +167,8 @@ export default function SignUpPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creando cuenta...
-              </>
-            ) : (
-              "Crear Cuenta"
-            )}
+          <Button type="submit" className="w-full">
+            Crear Cuenta
           </Button>
         </form>
 

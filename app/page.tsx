@@ -12,7 +12,7 @@ import { Search, Filter, X } from "lucide-react"
 // Dynamic import for better performance
 const AutoSliderBanner = dynamic(() => import("@/components/auto-slider-banner").then(mod => ({ default: mod.AutoSliderBanner })), {
   ssr: false,
-  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse-fast rounded-lg" />
 })
 
 interface Product {

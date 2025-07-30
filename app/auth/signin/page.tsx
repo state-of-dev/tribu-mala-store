@@ -7,18 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
 
     try {
@@ -30,7 +27,6 @@ export default function SignInPage() {
 
       if (result?.error) {
         setError("Credenciales inválidas")
-        setIsLoading(false)
         return
       }
 
@@ -40,7 +36,6 @@ export default function SignInPage() {
       router.refresh()
     } catch (error) {
       setError("Error al iniciar sesión")
-      setIsLoading(false)
     }
   }
 
@@ -102,15 +97,8 @@ export default function SignInPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Iniciando sesión...
-              </>
-            ) : (
-              "Iniciar Sesión"
-            )}
+          <Button type="submit" className="w-full">
+            Iniciar Sesión
           </Button>
         </form>
 

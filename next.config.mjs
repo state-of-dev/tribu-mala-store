@@ -68,14 +68,6 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
   swcMinify: true,
   compiler: {
