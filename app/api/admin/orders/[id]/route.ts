@@ -31,7 +31,18 @@ export async function GET(
       where: { id: params.id },
       include: {
         user: {
-          select: { name: true, email: true, address: true, city: true, zip: true, country: true }
+          select: { 
+            name: true, 
+            email: true, 
+            street: true,
+            number: true,
+            interior: true,
+            neighborhood: true,
+            city: true, 
+            state: true,
+            zip: true, 
+            country: true 
+          }
         },
         items: {
           include: {

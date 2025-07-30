@@ -1,4 +1,13 @@
-# 🛍️ Tribu Mala Store
+```
+ ████████╗██████╗ ██╗██████╗ ██╗   ██╗    ███╗   ███╗ █████╗ ██╗      █████╗ 
+ ╚══██╔══╝██╔══██╗██║██╔══██╗██║   ██║    ████╗ ████║██╔══██╗██║     ██╔══██╗
+    ██║   ██████╔╝██║██████╔╝██║   ██║    ██╔████╔██║███████║██║     ███████║
+    ██║   ██╔══██╗██║██╔══██╗██║   ██║    ██║╚██╔╝██║██╔══██║██║     ██╔══██║
+    ██║   ██║  ██║██║██████╔╝╚██████╔╝    ██║ ╚═╝ ██║██║  ██║███████╗██║  ██║
+    ╚═╝   ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+```
+
+# Tribu Mala Store
 
 **E-commerce completo de streetwear premium con sistema avanzado de gestión**
 
@@ -8,44 +17,45 @@
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 
-## 🚀 Características Principales
+##  Características Principales
 
-### ✅ **E-commerce Completo**
+###  **E-commerce Completo**
 - **Catálogo de productos** con búsqueda y filtros avanzados
 - **Carrito de compras** con persistencia en localStorage
 - **Checkout seguro** integrado con Stripe
 - **Gestión de inventario** en tiempo real
 - **Responsive design** optimizado para mobile y desktop
 
-### ✅ **Sistema de Usuarios Avanzado**
+###  **Sistema de Usuarios Avanzado**
 - **Autenticación completa** con NextAuth.js
-- **Perfiles de usuario** con información personal y direcciones
+- **Perfiles de usuario** con información personal y direcciones detalladas
 - **Sistema de roles** (Customer, Admin, Super Admin)
 - **Recuperación de contraseñas** con tokens seguros
-- **Métodos de pago guardados** para checkout rápido
+- **Pre-llenado automático** de checkout con datos del perfil
+- **Direcciones separadas** (calle, número, interior, colonia)
 
-### ✅ **Panel de Administración**
+###  **Panel de Administración**
 - **Dashboard completo** con métricas y analytics
 - **Gestión de productos** (crear, editar, eliminar)
 - **Gestión de órdenes** con cambios de estado
 - **Gestión de usuarios** y roles
 - **Timeline visual** de estados de pedidos
 
-### ✅ **Sistema de Emails Robusto**
+###  **Sistema de Emails Robusto**
 - **Confirmación de compras** con detalles completos
 - **Cambios de estado** de pedidos con timeline visual
 - **Emails de bienvenida** para nuevos usuarios
 - **Recuperación de contraseñas** con enlaces seguros
 - **Templates HTML responsivos** con branding consistente
 
-### ✅ **Pagos y Finanzas**
+###  **Pagos y Finanzas**
 - **Integración Stripe completa** con webhooks
 - **Soporte para MXN** (pesos mexicanos)
 - **Estados duales** (Payment Status + Order Status)
 - **Reintentos de pago** para transacciones fallidas
 - **Reportes financieros** básicos
 
-## 🛠️ Stack Tecnológico
+##  Stack Tecnológico
 
 ### **Frontend**
 - **Next.js 14** - Framework React con App Router
@@ -62,11 +72,11 @@
 
 ### **Servicios Externos**
 - **Stripe** - Procesamiento de pagos
-- **Gmail SMTP** - Envío de emails
+- **Resend** - Envío de emails transaccionales
 - **Vercel** - Deployment y hosting
 - **Neon** - Base de datos PostgreSQL en la nube
 
-## 📦 Instalación y Configuración
+##  Instalación y Configuración
 
 ### **Prerrequisitos**
 - Node.js 18+
@@ -99,9 +109,8 @@ STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 
-# Email (Gmail SMTP)
-GMAIL_USER="your-email@gmail.com"
-GMAIL_APP_PASSWORD="your-app-password"
+# Email (Resend)
+RESEND_API_KEY="re_..."
 
 # App
 NEXT_PUBLIC_URL="http://localhost:3000"
@@ -119,7 +128,7 @@ npx prisma db seed
 npm run dev
 ```
 
-## 📁 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```
 tribu-mala-store/
@@ -142,7 +151,7 @@ tribu-mala-store/
 └── types/                # Definiciones TypeScript
 ```
 
-## 🔐 Roles y Permisos
+##  Roles y Permisos
 
 ### **Customer (Usuario)**
 - Navegar catálogo de productos
@@ -161,7 +170,7 @@ tribu-mala-store/
 - Gestionar usuarios y roles
 - Acceso completo al sistema
 
-## 📧 Sistema de Emails
+##  Sistema de Emails
 
 ### **Templates Disponibles**
 1. **Confirmación de compra** - Enviado después del pago exitoso
@@ -175,7 +184,7 @@ El sistema usa Gmail SMTP para envío de emails. Configurar:
 - App Password generada en configuración de Google
 - Variables `GMAIL_USER` y `GMAIL_APP_PASSWORD`
 
-## 💳 Configuración de Stripe
+##  Configuración de Stripe
 
 ### **1. Crear cuenta Stripe**
 - Registrarse en [Stripe Dashboard](https://dashboard.stripe.com)
@@ -192,7 +201,7 @@ Eventos necesarios:
 - Los productos se sincronizan automáticamente
 - Precios en MXN (pesos mexicanos)
 
-## 🚀 Deployment
+##  Deployment
 
 ### **Vercel (Recomendado)**
 1. Conectar repositorio con Vercel
@@ -204,7 +213,7 @@ Eventos necesarios:
 - Configurar base de datos PostgreSQL
 - Actualizar `NEXTAUTH_URL` y `NEXT_PUBLIC_URL`
 
-## 📊 Monitoreo y Analytics
+##  Monitoreo y Analytics
 
 ### **Logs Disponibles**
 - Webhooks de Stripe
@@ -230,7 +239,7 @@ npm run db:migrate   # Migraciones de BD
 npm run db:seed      # Semilla de datos
 ```
 
-## 🤝 Contribución
+##  Contribución
 
 1. Fork del repositorio
 2. Crear branch de feature
@@ -238,11 +247,11 @@ npm run db:seed      # Semilla de datos
 4. Push al branch
 5. Crear Pull Request
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto es privado y propietario de Tribu Mala Store.
 
-## 📞 Soporte
+##  Soporte
 
 Para soporte técnico o consultas:
 - Email: soporte@tribumala.com
@@ -251,4 +260,3 @@ Para soporte técnico o consultas:
 ---
 
 **Tribu Mala Store** - Premium Streetwear E-commerce Platform  
-*Desarrollado con ❤️ usando Next.js y tecnologías modernas*
