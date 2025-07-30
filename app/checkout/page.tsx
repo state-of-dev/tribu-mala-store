@@ -435,7 +435,7 @@ export default function CheckoutPage() {
                 ) : (
                   <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-3">
                     <div className="text-blue-400 text-sm text-center">
-                      💡 <Link href="/auth/signin" className="underline">Inicia sesión</Link> para pre-llenar tus datos
+                      <Link href="/auth/signin?callbackUrl=%2Fcheckout" className="underline">Inicia sesión</Link> para pre-llenar tus datos
                     </div>
                   </div>
                 )}

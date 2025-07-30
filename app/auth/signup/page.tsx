@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,8 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Reset error when user starts typing
@@ -80,9 +82,9 @@ export default function SignUpPage() {
       setIsLoading(false)
       setSuccess(true)
       
-      // Redirigir a login después de 2 segundos
+      // Redirigir a login después de 2 segundos con callbackUrl
       setTimeout(() => {
-        router.push("/auth/signin")
+        router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
       }, 2000)
 
     } catch (error: any) {
@@ -92,7 +94,7 @@ export default function SignUpPage() {
   }
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" })
+    signIn("google", { callbackUrl: callbackUrl })
   }
 
   if (success) {
@@ -228,7 +230,7 @@ export default function SignUpPage() {
         <div className="text-center mt-6">
           <p className="text-muted-foreground">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/auth/signin" className="text-primary hover:text-primary/80">
+            <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary hover:text-primary/80">
               Inicia sesión aquí
             </Link>
           </p>

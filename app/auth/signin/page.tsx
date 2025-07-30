@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { signIn, getSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,8 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,9 +32,9 @@ export default function SignInPage() {
         return
       }
 
-      // Refresh session and redirect
+      // Refresh session and redirect to original page
       await getSession()
-      router.push("/")
+      router.push(callbackUrl)
       router.refresh()
     } catch (error) {
       setError("Error al iniciar sesión")
@@ -41,7 +43,7 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = () => {
     console.log("Iniciando auth con Google...")
-    signIn("google", { callbackUrl: "/" })
+    signIn("google", { callbackUrl: callbackUrl })
       .then((result) => {
         console.log("Google auth result:", result)
       })
@@ -143,7 +145,7 @@ export default function SignInPage() {
         <div className="text-center mt-6">
           <p className="text-muted-foreground">
             ¿No tienes cuenta?{" "}
-            <Link href="/auth/signup" className="text-primary hover:text-primary/80">
+            <Link href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary hover:text-primary/80">
               Regístrate aquí
             </Link>
           </p>

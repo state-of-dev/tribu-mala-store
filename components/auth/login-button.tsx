@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogIn, Loader2 } from "lucide-react"
 
@@ -22,16 +22,14 @@ export function LoginButton({
 }: LoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleLogin = async () => {
     setIsLoading(true)
     try {
-      // Store redirect URL in sessionStorage for after login
-      if (redirectTo !== "/") {
-        sessionStorage.setItem("redirectAfterLogin", redirectTo)
-      }
-      
-      router.push("/auth/signin")
+      // Use current pathname or custom redirectTo
+      const callbackUrl = encodeURIComponent(redirectTo === "/" ? pathname : redirectTo)
+      router.push(`/auth/signin?callbackUrl=${callbackUrl}`)
     } catch (error) {
       console.error("Error navigating to login:", error)
       setIsLoading(false)

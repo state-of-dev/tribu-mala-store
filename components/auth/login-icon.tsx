@@ -1,13 +1,15 @@
 "use client"
 
 import { LogIn } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 
 export function LoginIcon() {
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleClick = () => {
-    router.push("/auth/signin")
+    const callbackUrl = encodeURIComponent(pathname)
+    router.push(`/auth/signin?callbackUrl=${callbackUrl}`)
   }
 
   return (
