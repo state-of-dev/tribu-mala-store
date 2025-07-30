@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/prisma"
-import { sendOrderConfirmationEmail } from "@/lib/email"
+import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email"
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -98,36 +98,66 @@ export async function POST(request: Request) {
           const customerEmail = updatedOrder.customerEmail || updatedOrder.user?.email
           const customerName = updatedOrder.customerName || updatedOrder.user?.name || 'Cliente'
           
-          console.log(`📧 Sending email to: ${customerEmail}`)
+          console.log(`📧 Sending emails for order: ${updatedOrder.orderNumber}`)
           
           if (customerEmail) {
+            // Preparar datos comunes para ambos emails
+            const emailData = {
+              orderNumber: updatedOrder.orderNumber,
+              customerName: customerName,
+              customerEmail: customerEmail,
+              items: updatedOrder.items.map(item => ({
+                productName: item.product.name,
+                quantity: item.quantity,
+                productPrice: item.product.price,
+                total: item.quantity * item.product.price
+              })),
+              total: updatedOrder.total,
+              shippingAddress: updatedOrder.shippingAddress ? {
+                street: updatedOrder.shippingAddress,
+                city: updatedOrder.shippingCity,
+                state: updatedOrder.shippingCountry, 
+                zipCode: updatedOrder.shippingZip
+              } : undefined
+            }
+            
+            // 1. Enviar email de confirmación al cliente
             try {
-              const emailResult = await sendOrderConfirmationEmail({
-                orderNumber: updatedOrder.orderNumber,
-                customerName: customerName,
-                customerEmail: customerEmail,
-                items: updatedOrder.items.map(item => ({
-                  productName: item.product.name,
-                  quantity: item.quantity,
-                  productPrice: item.product.price,
-                  total: item.quantity * item.product.price
-                })),
-                total: updatedOrder.total,
-                shippingAddress: updatedOrder.shippingAddress ? {
-                  street: updatedOrder.shippingAddress,
-                  city: updatedOrder.shippingCity,
-                  state: updatedOrder.shippingCountry, 
-                  zipCode: updatedOrder.shippingZip
-                } : undefined
-              })
+              console.log(`📧 Sending confirmation email to customer: ${customerEmail}`)
+              const customerEmailResult = await sendOrderConfirmationEmail(emailData)
               
-              if (emailResult.success) {
-                console.log(`✅ Confirmation email sent successfully to: ${customerEmail}`)
+              if (customerEmailResult.success) {
+                console.log(`✅ Confirmation email sent successfully to customer: ${customerEmail}`)
               } else {
-                console.error(`❌ Failed to send confirmation email:`, emailResult.error)
+                console.error(`❌ Failed to send confirmation email to customer:`, customerEmailResult.error)
               }
             } catch (emailError) {
-              console.error(`❌ Error sending confirmation email:`, emailError)
+              console.error(`❌ Error sending confirmation email to customer:`, emailError)
+            }
+            
+            // 2. Enviar email de notificación al admin
+            try {
+              console.log(`📧 Sending admin notification email to: fg.dev.desk@gmail.com`)
+              const adminEmailResult = await sendAdminNotificationEmail({
+                ...emailData,
+                orderDate: new Date().toLocaleDateString('es-MX', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'America/Mexico_City'
+                }),
+                paymentMethod: 'Stripe (Tarjeta de crédito/débito)'
+              })
+              
+              if (adminEmailResult.success) {
+                console.log(`✅ Admin notification email sent successfully to: fg.dev.desk@gmail.com`)
+              } else {
+                console.error(`❌ Failed to send admin notification email:`, adminEmailResult.error)
+              }
+            } catch (emailError) {
+              console.error(`❌ Error sending admin notification email:`, emailError)
             }
           } else {
             console.error(`❌ No customer email found for order: ${updatedOrder.orderNumber}`)

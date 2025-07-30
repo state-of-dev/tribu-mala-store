@@ -706,3 +706,171 @@ export async function sendOrderStatusChangeEmail(data: OrderStatusChangeData, em
     html: generateOrderStatusChangeEmail(data)
   })
 }
+
+// 5. ADMIN NOTIFICATION EMAIL (Nueva funcionalidad)
+interface AdminNotificationData {
+  orderNumber: string
+  customerName: string
+  customerEmail: string
+  items: Array<{
+    productName: string
+    quantity: number
+    productPrice: number
+    total: number
+    size?: string
+    color?: string
+  }>
+  total: number
+  shippingAddress?: {
+    street: string
+    city: string
+    state: string
+    zipCode: string
+  }
+  paymentMethod?: string
+  orderDate: string
+}
+
+export function generateAdminNotificationEmail(data: AdminNotificationData) {
+  const { orderNumber, customerName, customerEmail, items, total, shippingAddress, paymentMethod, orderDate } = data
+  
+  const content = `
+    <div style="background: #10b981; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px; border-radius: 8px; margin: 16px 0; text-align: center;">
+      <h2 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: bold;">🎉 NUEVA VENTA CONFIRMADA</h2>
+      <p style="color: white; margin: 0; font-size: 16px; opacity: 0.9;">¡Tienes un nuevo pedido pagado exitosamente!</p>
+    </div>
+    
+    <div class="card-highlight">
+      <h3>Resumen del Pedido</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;">
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Número de Pedido</p>
+          <p style="font-weight: 600; margin: 0; color: #10b981;">${orderNumber}</p>
+        </div>
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Total de la Venta</p>
+          <p style="font-weight: 600; margin: 0; font-size: 18px; color: #10b981;">$${total.toFixed(2)}</p>
+        </div>
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Fecha y Hora</p>
+          <p style="font-weight: 600; margin: 0;">${orderDate}</p>
+        </div>
+        <div>
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Estado del Pago</p>
+          <p style="font-weight: 600; margin: 0; color: #10b981;">✅ PAGADO</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h4>Información del Cliente</h4>
+      <div style="margin: 16px 0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Nombre</p>
+            <p style="font-weight: 600; margin: 0;">${customerName}</p>
+          </div>
+          <div>
+            <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Email</p>
+            <p style="font-weight: 600; margin: 0;">${customerEmail}</p>
+          </div>
+        </div>
+        ${paymentMethod ? `
+        <div style="margin-top: 12px;">
+          <p style="font-size: 14px; color: #64748b; margin: 0 0 4px 0;">Método de Pago</p>
+          <p style="font-weight: 600; margin: 0;">${paymentMethod}</p>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+    
+    <div class="card">
+      <h4>Productos Vendidos</h4>
+      <div style="margin: 16px 0;">
+        ${items.map(item => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="flex: 1;">
+              <p style="font-weight: 600; margin: 0 0 4px 0;">${item.productName}</p>
+              <p style="font-size: 14px; color: #64748b; margin: 0;">
+                Cantidad: ${item.quantity}
+                ${item.size ? ` • Talla: ${item.size}` : ''}
+                ${item.color ? ` • Color: ${item.color}` : ''}
+              </p>
+              <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">
+                Precio unitario: $${item.productPrice.toFixed(2)}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <p style="font-weight: 600; margin: 0; color: #10b981;">$${item.total.toFixed(2)}</p>
+            </div>
+          </div>
+        `).join('')}
+        
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #10b981;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-weight: bold; font-size: 20px;">TOTAL DE LA VENTA:</span>
+            <span style="font-weight: bold; font-size: 20px; color: #10b981;">$${total.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    ${shippingAddress ? `
+    <div class="card">
+      <h4>Dirección de Envío</h4>
+      <div style="margin: 16px 0;">
+        <p style="margin: 0; line-height: 1.5;">
+          <strong>${customerName}</strong><br>
+          ${shippingAddress.street}<br>
+          ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}
+        </p>
+      </div>
+    </div>
+    ` : ''}
+    
+    <div class="card-highlight">
+      <h4>🚚 Próximos Pasos</h4>
+      <div style="margin: 16px 0;">
+        <p style="font-size: 14px; margin: 8px 0;">
+          ✅ <strong>Paso 1:</strong> El pago ha sido procesado exitosamente por Stripe
+        </p>
+        <p style="font-size: 14px; margin: 8px 0;">
+          📦 <strong>Paso 2:</strong> Preparar el pedido para envío
+        </p>
+        <p style="font-size: 14px; margin: 8px 0;">
+          🏷️ <strong>Paso 3:</strong> Actualizar el estado a "SHIPPED" cuando sea enviado
+        </p>
+        <p style="font-size: 14px; margin: 8px 0;">
+          📧 <strong>Paso 4:</strong> El cliente recibirá notificación automática de cada cambio
+        </p>
+      </div>
+    </div>
+    
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${process.env.NEXT_PUBLIC_URL}/admin/orders" class="button">
+        Ver Pedido en Admin Panel
+      </a>
+    </div>
+    
+    <div style="margin-top: 24px; padding: 16px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #10b981;">
+      <p style="margin: 0; font-size: 14px; color: #065f46;">
+        <strong>💰 Resumen Financiero:</strong><br>
+        • Ingreso bruto: $${total.toFixed(2)}<br>
+        • Comisión Stripe (~3%): $${(total * 0.03).toFixed(2)}<br>
+        • Ingreso neto estimado: $${(total * 0.97).toFixed(2)}
+      </p>
+    </div>
+  `
+  
+  return getBaseTemplate(content)
+}
+
+export async function sendAdminNotificationEmail(data: AdminNotificationData) {
+  const adminEmail = 'fg.dev.desk@gmail.com'
+  
+  return await sendEmail({
+    to: adminEmail,
+    subject: `🎉 Nueva Venta: $${data.total.toFixed(2)} - Pedido #${data.orderNumber}`,
+    html: generateAdminNotificationEmail(data)
+  })
+}
