@@ -31,7 +31,24 @@ import {
   RefreshCcw,
   ExternalLink
 } from "lucide-react"
-import { getPaymentStatusColor, getPaymentStatusText } from "@/lib/order-status"
+// Payment status functions (simplificadas)
+const getPaymentStatusColor = (status: string): string => {
+  switch (status) {
+    case 'PAID': return 'bg-green-500/10 text-green-500 border-green-500/20'
+    case 'FAILED': return 'bg-red-500/10 text-red-500 border-red-500/20'
+    case 'PENDING': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+    default: return 'bg-muted text-muted-foreground'
+  }
+}
+
+const getPaymentStatusText = (status: string): string => {
+  switch (status) {
+    case 'PAID': return 'Pagado'
+    case 'FAILED': return 'Fallido'
+    case 'PENDING': return 'Pendiente'
+    default: return status
+  }
+}
 
 interface Payment {
   id: string
@@ -312,7 +329,7 @@ export default function PaymentsPage() {
                             <p className="font-medium">{payment.orderNumber}</p>
                             <Badge className={`${getPaymentStatusColor(payment.paymentStatus)} text-xs font-medium border relative overflow-hidden`}>
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
-                              {payment.paymentStatus}
+                              {getPaymentStatusText(payment.paymentStatus)}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">

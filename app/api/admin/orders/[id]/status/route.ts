@@ -19,7 +19,7 @@ export async function PATCH(
     }
 
     // Validate status
-    const validStatuses = ['CONFIRMED', 'SHIPPED', 'DELIVERED']  // Solo estados simplificados
+    const validStatuses = ['CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED']  // Incluye cancelado
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
@@ -43,7 +43,8 @@ export async function PATCH(
         status,
         // Add timestamps for specific statuses
         ...(status === 'SHIPPED' && { shippedAt: new Date() }),
-        ...(status === 'DELIVERED' && { deliveredAt: new Date() })
+        ...(status === 'DELIVERED' && { deliveredAt: new Date() }),
+        ...(status === 'CANCELLED' && { cancelledAt: new Date() })
       },
       include: {
         user: true,
@@ -119,7 +120,8 @@ export async function PATCH(
         status: updatedOrder.status,
         paymentStatus: updatedOrder.paymentStatus,
         shippedAt: updatedOrder.shippedAt,
-        deliveredAt: updatedOrder.deliveredAt
+        deliveredAt: updatedOrder.deliveredAt,
+        cancelledAt: updatedOrder.cancelledAt
       },
       email: {
         sent: emailSent,
