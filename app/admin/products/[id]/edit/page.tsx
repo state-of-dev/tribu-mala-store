@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { 
   Save, 
   ArrowLeft, 
@@ -475,37 +476,29 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                   <CardHeader>
                     <CardTitle>Imágenes del Producto</CardTitle>
                     <CardDescription>
-                      URLs de las imágenes (la primera es obligatoria)
+                      Sube imágenes o pega URLs (la primera es obligatoria)
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="image1">Imagen Principal *</Label>
-                      <Input
-                        id="image1"
-                        value={formData.image1}
-                        onChange={(e) => handleInputChange('image1', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen1.jpg"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="image2">Imagen Secundaria</Label>
-                      <Input
-                        id="image2"
-                        value={formData.image2}
-                        onChange={(e) => handleInputChange('image2', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen2.jpg"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="image3">Imagen Terciaria</Label>
-                      <Input
-                        id="image3"
-                        value={formData.image3}
-                        onChange={(e) => handleInputChange('image3', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen3.jpg"
-                      />
-                    </div>
+                  <CardContent className="space-y-6">
+                    <ImageUpload
+                      label="Imagen Principal"
+                      value={formData.image1}
+                      onChange={(url) => handleInputChange('image1', url)}
+                      placeholder="https://ejemplo.com/imagen1.jpg"
+                      required={true}
+                    />
+                    <ImageUpload
+                      label="Imagen Secundaria"
+                      value={formData.image2}
+                      onChange={(url) => handleInputChange('image2', url)}
+                      placeholder="https://ejemplo.com/imagen2.jpg"
+                    />
+                    <ImageUpload
+                      label="Imagen Terciaria"
+                      value={formData.image3}
+                      onChange={(url) => handleInputChange('image3', url)}
+                      placeholder="https://ejemplo.com/imagen3.jpg"
+                    />
                   </CardContent>
                 </Card>
 
