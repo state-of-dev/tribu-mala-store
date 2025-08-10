@@ -6,8 +6,8 @@ import type { CartItem, Product } from "@/lib/types"
 interface CartContextType {
   items: CartItem[]
   addItem: (product: Product) => void
-  removeItem: (productId: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
+  removeItem: (productId: number, size?: string | null, color?: string | null) => void
+  updateQuantity: (productId: number, quantity: number, size?: string | null, color?: string | null) => void
   clearCart: () => void
   isCartOpen: boolean
   setIsCartOpen: (isOpen: boolean) => void
@@ -51,11 +51,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (product: Product) => {
     setItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id)
+      // Find existing item with same id, size, and color
+      const existingItem = prevItems.find((item) => 
+        item.id === product.id && 
+        item.size === product.size && 
+        item.color === product.color
+      )
 
       if (existingItem) {
         // Increase quantity if item already exists
-        return prevItems.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prevItems.map((item) => 
+          item.id === product.id && item.size === product.size && item.color === product.color
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        )
       } else {
         // Add new item with quantity 1
         return [...prevItems, { ...product, quantity: 1 }]
@@ -66,8 +75,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsCartOpen(true)
   }
 
-  const removeItem = (productId: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== productId))
+  const removeItem = (productId: number, size?: string | null, color?: string | null) => {
+    setItems((prevItems) => prevItems.filter((item) => 
+      !(item.id === productId && item.size === size && item.color === color)
+    ))
 
     // If cart becomes empty, remove from localStorage
     if (items.length === 1) {
@@ -75,10 +86,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number, size?: string | null, color?: string | null) => {
     if (quantity < 1) return
 
-    setItems((prevItems) => prevItems.map((item) => (item.id === productId ? { ...item, quantity } : item)))
+    setItems((prevItems) => prevItems.map((item) => 
+      item.id === productId && item.size === size && item.color === color
+        ? { ...item, quantity } 
+        : item
+    ))
   }
 
   const clearCart = () => {

@@ -1,17 +1,49 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Save, Package, User, CreditCard, MapPin } from "lucide-react"
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { 
+  ArrowLeft, 
+  Save, 
+  Package, 
+  User, 
+  CreditCard, 
+  MapPin,
+  AlertTriangle,
+  ShoppingCart,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Truck,
+  XCircle,
+  DollarSign
+} from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { OrderStatusManager } from "@/components/admin/order-status-manager"
+import { 
+  getOrderStatusText, 
+  getOrderStatusColor,
+  getOrderStatusIcon 
+} from "@/lib/order-status"
 
 interface OrderItem {
   id: string
@@ -21,62 +53,47 @@ interface OrderItem {
   size?: string
   color?: string
   total: number
-  product: {
-    id: number
-    name: string
-    image1: string
-    price: number
-    stock: number
-  }
-}
-
-interface Order {
-  id: string
-  orderNumber: string
-  customerName: string | null
-  customerEmail: string
-  shippingAddress: string
-  shippingCity: string
-  shippingZip: string
-  shippingCountry: string
-  subtotal: number
-  shippingCost: number
-  tax: number
-  total: number
-  status: string
-  paymentStatus: string
-  customerNotes?: string
-  adminNotes?: string
-  stripeSessionId?: string
-  createdAt: string
-  updatedAt: string
-  shippedAt?: string
-  deliveredAt?: string
-  items: OrderItem[]
-  user?: {
-    name: string | null
-    email: string
-    address?: string
-    city?: string
-    zip?: string
-    country?: string
-  }
 }
 
 interface OrderData {
-  order: Order
+  order: {
+    id: string
+    orderNumber: string
+    status: string
+    paymentStatus: string
+    total: number
+    subtotal: number
+    shippingCost: number
+    tax: number
+    createdAt: string
+    updatedAt: string
+    customerNotes?: string
+    adminNotes?: string
+    stripeSessionId?: string
+    user: {
+      id: string
+      email: string
+      name?: string
+      address?: string
+      city?: string
+      state?: string
+      zipCode?: string
+      country?: string
+      phone?: string
+    }
+    items: OrderItem[]
+  }
 }
 
 export default function AdminOrderDetail() {
   const params = useParams()
+  const router = useRouter()
   const orderId = params.id as string
   
   const [orderData, setOrderData] = useState<OrderData | null>(null)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [newStatus, setNewStatus] = useState<string>('')
-  const [adminNotes, setAdminNotes] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (orderId) {
@@ -84,20 +101,15 @@ export default function AdminOrderDetail() {
     }
   }, [orderId])
 
-  useEffect(() => {
-    if (orderData) {
-      setNewStatus(orderData.order.status)
-      setAdminNotes(orderData.order.adminNotes || '')
-    }
-  }, [orderData])
-
   const fetchOrderDetails = async () => {
+    setIsLoading(true)
+    setError(null)
+    
     try {
-      setLoading(true)
       const response = await fetch(`/api/admin/orders/${orderId}`)
       
       if (!response.ok) {
-        throw new Error('Error al cargar detalles de la orden')
+        throw new Error('Error al cargar los detalles del pedido')
       }
       
       const data = await response.json()
@@ -106,84 +118,33 @@ export default function AdminOrderDetail() {
       console.error('Error:', error)
       setError(error instanceof Error ? error.message : 'Error desconocido')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const updateOrder = async () => {
-    if (!orderData) return
-    
+  const handleStatusUpdate = async (newStatus: string) => {
+    setSaving(true)
     try {
-      setSaving(true)
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
+      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          status: newStatus,
-          adminNotes: adminNotes
-        })
+        body: JSON.stringify({ status: newStatus }),
       })
-      
+
       if (!response.ok) {
-        throw new Error('Error al actualizar la orden')
+        throw new Error('Error al actualizar el estado')
       }
-      
-      const data = await response.json()
-      setOrderData({ order: data.order })
-      toast.success('Orden actualizada exitosamente')
+
+      // Refresh order data
+      await fetchOrderDetails()
+      toast.success('Estado actualizado correctamente')
     } catch (error) {
       console.error('Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al actualizar')
+      toast.error('Error al actualizar el estado')
     } finally {
       setSaving(false)
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING': return 'bg-yellow-500'
-      case 'CONFIRMED': return 'bg-blue-500'
-      case 'PROCESSING': return 'bg-orange-500'
-      case 'SHIPPED': return 'bg-purple-500'
-      case 'DELIVERED': return 'bg-green-500'
-      case 'CANCELLED': return 'bg-red-500'
-      case 'RETURNED': return 'bg-black'
-      default: return 'bg-black'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'PENDING': return 'Pendiente'
-      case 'CONFIRMED': return 'Confirmado'
-      case 'PROCESSING': return 'Procesando'
-      case 'SHIPPED': return 'Enviado'
-      case 'DELIVERED': return 'Entregado'
-      case 'CANCELLED': return 'Cancelado'
-      case 'RETURNED': return 'Devuelto'
-      default: return status
-    }
-  }
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'PAID': return 'bg-green-500'
-      case 'PENDING': return 'bg-yellow-500'
-      case 'FAILED': return 'bg-red-500'
-      case 'REFUNDED': return 'bg-blue-500'
-      default: return 'bg-black'
-    }
-  }
-
-  const getPaymentStatusText = (status: string) => {
-    switch (status) {
-      case 'PAID': return 'Pagado'
-      case 'PENDING': return 'Pendiente'
-      case 'FAILED': return 'Fallido'
-      case 'REFUNDED': return 'Reembolsado'
-      default: return status
     }
   }
 
@@ -198,325 +159,318 @@ export default function AdminOrderDetail() {
     return new Date(date).toLocaleString('es-MX')
   }
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    try {
-      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      const data = await response.json()
-
-      if (data.success && orderData) {
-        // Update local state
-        setOrderData({
-          ...orderData,
-          order: {
-            ...orderData.order,
-            status: newStatus,
-            ...(data.order.shippedAt && { shippedAt: data.order.shippedAt }),
-            ...(data.order.deliveredAt && { deliveredAt: data.order.deliveredAt })
-          }
-        })
-        toast.success(`Estado actualizado a ${newStatus}`)
-      } else {
-        toast.error('Error al actualizar el estado')
-      }
-    } catch (error) {
-      console.error('Error updating status:', error)
-      toast.error('Error al actualizar el estado')
-    }
-  }
-
-  const handlePaymentRetry = async () => {
-    try {
-      const response = await fetch('/api/admin/retry-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId })
-      })
-      
-      const data = await response.json()
-      
-      if (data.success && data.checkoutUrl) {
-        window.open(data.checkoutUrl, '_blank')
-        toast.success('Nueva sesión de pago creada')
-      } else {
-        toast.error('Error al crear nueva sesión de pago')
-      }
-    } catch (error) {
-      console.error('Error retrying payment:', error)
-      toast.error('Error al reintentar el pago')
-    }
-  }
-
-  if (loading) {
+  // Show loading state
+  if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-            <p className="mt-4 text-black">Cargando detalles de la orden...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !orderData) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{error || 'Orden no encontrada'}</p>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={fetchOrderDetails}>Reintentar</Button>
-              <Link href="/admin/orders">
-                <Button variant="outline">Volver a Órdenes</Button>
-              </Link>
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="/admin/orders">Pedidos</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Cargando...</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <Card>
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Cargando detalles del pedido...</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     )
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="dark">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="/admin/orders">Pedidos</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Error</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Error
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">{error}</p>
+                  <div className="flex gap-2">
+                    <Button onClick={fetchOrderDetails}>
+                      Reintentar
+                    </Button>
+                    <Button variant="outline" onClick={() => router.push('/admin/orders')}>
+                      Volver a Pedidos
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+    )
+  }
+
+  if (!orderData?.order) return null
   const order = orderData.order
 
+  // Main component content
   return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/admin/orders">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Órdenes
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-black">Orden {order.orderNumber}</h1>
-            <p className="text-black">Creada el {formatDate(order.createdAt)}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <Badge 
-            variant="secondary" 
-            className={`text-white ${getStatusColor(order.status)}`}
-          >
-            {getStatusText(order.status)}
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className={`text-white ${getPaymentStatusColor(order.paymentStatus)}`}
-          >
-            {getPaymentStatusText(order.paymentStatus)}
-          </Badge>
-        </div>
-      </div>
+    <div className="dark">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="/admin/orders">Pedidos</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{order.orderNumber}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+          </header>
+          
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Package className="h-8 w-8 text-primary" />
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Pedido #{order.orderNumber}</h1>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge className={`${getOrderStatusColor(order.status)} text-xs font-medium border transition-transform duration-200 hover:scale-105 relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
+                        {(() => {
+                          const StatusIcon = getOrderStatusIcon(order.status)
+                          return <StatusIcon className="h-3 w-3 mr-1" />
+                        })()}
+                        {getOrderStatusText(order.status)}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => router.push('/admin/orders')}
+                  className="transition-all duration-200 hover:scale-105 active:scale-95 hover:border-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver
+                </Button>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna izquierda - Información principal */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Productos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Productos ({order.items.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <img 
-                      src={item.product.image1} 
-                      alt={item.productName}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium">{item.productName}</h3>
-                      <div className="text-sm text-black">
-                        {item.size && <span>Talla: {item.size} </span>}
-                        {item.color && <span>Color: {item.color}</span>}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Customer Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Información del Cliente
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm text-muted-foreground">{order.user?.email || 'No disponible'}</p>
                       </div>
-                      <p className="text-sm text-black">
-                        Precio unitario: {formatCurrency(item.productPrice)}
-                      </p>
+                      {order.user?.name && (
+                        <div>
+                          <p className="text-sm font-medium">Nombre</p>
+                          <p className="text-sm text-muted-foreground">{order.user.name}</p>
+                        </div>
+                      )}
+                      {order.user?.phone && (
+                        <div>
+                          <p className="text-sm font-medium">Teléfono</p>
+                          <p className="text-sm text-muted-foreground">{order.user.phone}</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">Cantidad: {item.quantity}</p>
-                      <p className="text-lg font-bold">{formatCurrency(item.total)}</p>
+                    
+                    {(order.user?.address || order.user?.city) && (
+                      <div>
+                        <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Dirección de Envío
+                        </p>
+                        <div className="text-sm text-muted-foreground">
+                          {order.user.address && <p>{order.user.address}</p>}
+                          {order.user.city && (
+                            <p>{order.user.city}, {order.user.state} {order.user.zipCode}</p>
+                          )}
+                          {order.user.country && <p>{order.user.country}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Order Items */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5" />
+                      Productos ({order.items?.length || 0})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {order.items?.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{item.productName}</h4>
+                            <div className="flex gap-4 text-sm text-muted-foreground">
+                              <span>Cantidad: {item.quantity}</span>
+                              {item.size && <span>Talla: {item.size}</span>}
+                              {item.color && <span>Color: {item.color}</span>}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {formatCurrency(item.productPrice)} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(item.total)}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+
+                    <Separator className="my-4" />
+                    
+                    {/* Order Totals */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span>{formatCurrency(order.subtotal)}</span>
+                      </div>
+                      {order.shippingCost > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Envío:</span>
+                          <span>{formatCurrency(order.shippingCost)}</span>
+                        </div>
+                      )}
+                      {order.tax > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Impuestos:</span>
+                          <span>{formatCurrency(order.tax)}</span>
+                        </div>
+                      )}
+                      <Separator />
+                      <div className="flex justify-between font-semibold">
+                        <span>Total:</span>
+                        <span>{formatCurrency(order.total)}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Información del cliente */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Información del Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-black">Nombre</Label>
-                  <p>{order.customerName || 'No especificado'}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-black">Email</Label>
-                  <p>{order.customerEmail}</p>
-                </div>
-              </div>
-              
-              {order.customerNotes && (
-                <div className="mt-4">
-                  <Label className="text-sm font-medium text-black">Notas del cliente</Label>
-                  <p className="mt-1 p-3 bg-black text-white rounded">{order.customerNotes}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Dirección de envío */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Dirección de Envío
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p>{order.shippingAddress}</p>
-                <p>{order.shippingCity}, {order.shippingZip}</p>
-                <p>{order.shippingCountry}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Columna derecha - Gestión y resumen */}
-        <div className="space-y-6">
-          {/* Gestión de estado con OrderStatusManager */}
-          <OrderStatusManager
-            orderId={orderId}
-            orderNumber={order.orderNumber}
-            currentStatus={order.status}
-            currentPaymentStatus={order.paymentStatus}
-            stripeSessionId={order.stripeSessionId}
-            onStatusUpdate={handleStatusUpdate}
-            onPaymentRetry={handlePaymentRetry}
-          />
-
-          {/* Notas administrativas */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notas Administrativas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="adminNotes">Notas internas</Label>
-                <Textarea
-                  id="adminNotes"
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Agregar notas internas sobre esta orden..."
-                  rows={4}
-                  className="placeholder:text-black"
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Order Status Manager */}
+                <OrderStatusManager
+                  orderId={orderId}
+                  orderNumber={order.orderNumber}
+                  currentStatus={order.status}
+                  onStatusUpdate={handleStatusUpdate}
                 />
-              </div>
 
-              <Button 
-                onClick={updateOrder} 
-                disabled={saving}
-                className="w-full"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar Notas'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Resumen financiero */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Resumen de Pago
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Envío:</span>
-                  <span>{formatCurrency(order.shippingCost)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Impuestos:</span>
-                  <span>{formatCurrency(order.tax)}</span>
-                </div>
-                <div className="border-t pt-2">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total:</span>
-                    <span>{formatCurrency(order.total)}</span>
-                  </div>
-                </div>
+                {/* Order Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Información del Pedido
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium">Creado</p>
+                      <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Última actualización</p>
+                      <p className="text-sm text-muted-foreground">{formatDate(order.updatedAt)}</p>
+                    </div>
+                    {order.customerNotes && (
+                      <div>
+                        <p className="text-sm font-medium">Notas del cliente</p>
+                        <p className="text-sm text-muted-foreground">{order.customerNotes}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Timestamps importantes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Historial</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Creada:</span>
-                  <br />
-                  {formatDate(order.createdAt)}
-                </div>
-                <div>
-                  <span className="font-medium">Última actualización:</span>
-                  <br />
-                  {formatDate(order.updatedAt)}
-                </div>
-                {order.shippedAt && (
-                  <div>
-                    <span className="font-medium">Enviada:</span>
-                    <br />
-                    {formatDate(order.shippedAt)}
-                  </div>
-                )}
-                {order.deliveredAt && (
-                  <div>
-                    <span className="font-medium">Entregada:</span>
-                    <br />
-                    {formatDate(order.deliveredAt)}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }

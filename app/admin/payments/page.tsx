@@ -31,6 +31,7 @@ import {
   RefreshCcw,
   ExternalLink
 } from "lucide-react"
+import { getPaymentStatusColor, getPaymentStatusText } from "@/lib/order-status"
 
 interface Payment {
   id: string
@@ -49,14 +50,13 @@ interface PaymentsData {
   metrics: {
     totalRevenue: number
     paidPayments: number
-    pendingPayments: number
+    completedPayments: number  // Cambiado de pendingPayments
     failedPayments: number
   }
 }
 
 export default function PaymentsPage() {
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { showAlert, AlertModalComponent } = useAlertModal()
 
@@ -66,7 +66,6 @@ export default function PaymentsPage() {
 
   const fetchPayments = async () => {
     try {
-      setLoading(true)
       // Obtener todas las órdenes para calcular métricas de pagos
       const response = await fetch('/api/admin/orders')
       
@@ -95,7 +94,7 @@ export default function PaymentsPage() {
       const metrics = {
         totalRevenue: paidPayments.reduce((sum, p) => sum + p.total, 0),
         paidPayments: paidPayments.length,
-        pendingPayments: payments.filter(p => p.paymentStatus === 'PENDING').length,
+        completedPayments: payments.filter(p => p.paymentStatus === 'PAID').length,
         failedPayments: payments.filter(p => p.paymentStatus === 'FAILED').length
       }
 
@@ -106,20 +105,9 @@ export default function PaymentsPage() {
     } catch (error) {
       console.error('Error:', error)
       setError(error instanceof Error ? error.message : 'Error desconocido')
-    } finally {
-      setLoading(false)
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PAID': return 'bg-green-500/10 text-green-500 border-green-500/20'
-      case 'PENDING': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-      case 'FAILED': return 'bg-red-500/10 text-red-500 border-red-500/20'
-      case 'REFUNDED': return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
-      default: return 'bg-muted text-muted-foreground'
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -158,42 +146,6 @@ export default function PaymentsPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="dark">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem>
-                      <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Pagos</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-              <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="aspect-video rounded-xl bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min animate-pulse" />
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </div>
-    )
-  }
 
   if (error) {
     return (
@@ -308,9 +260,9 @@ export default function PaymentsPage() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{paymentsData.metrics.pendingPayments}</div>
+                  <div className="text-2xl font-bold">{paymentsData.metrics.completedPayments}</div>
                   <p className="text-xs text-muted-foreground">
-                    {paymentsData.metrics.pendingPayments > 0 ? 'Requieren atención' : 'Todo al día'}
+                    {paymentsData.metrics.completedPayments > 0 ? 'Pagos completados' : 'Sin pagos'}
                   </p>
                 </CardContent>
               </Card>
@@ -358,7 +310,8 @@ export default function PaymentsPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <p className="font-medium">{payment.orderNumber}</p>
-                            <Badge className={`${getStatusColor(payment.paymentStatus)} text-xs font-medium border`}>
+                            <Badge className={`${getPaymentStatusColor(payment.paymentStatus)} text-xs font-medium border relative overflow-hidden`}>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
                               {payment.paymentStatus}
                             </Badge>
                           </div>

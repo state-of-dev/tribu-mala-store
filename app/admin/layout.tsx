@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { DashboardPreloader } from "@/components/dashboard-preloader"
+import { ReduxProvider } from "@/components/providers/redux-provider"
+import { AdminDataLoader } from "@/components/admin/admin-data-loader"
 
 export default function AdminLayout({
   children,
@@ -28,13 +30,7 @@ export default function AdminLayout({
   }, [session, status, router])
 
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground font-medium">Verificando permisos...</p>
-        </div>
-      </div>
-    )
+    return null
   }
 
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
@@ -44,7 +40,11 @@ export default function AdminLayout({
   return (
     <>
       <DashboardPreloader />
-      {children}
+      <ReduxProvider>
+        <AdminDataLoader>
+          {children}
+        </AdminDataLoader>
+      </ReduxProvider>
     </>
   )
 }

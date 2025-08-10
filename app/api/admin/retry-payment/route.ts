@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       where: { id: orderId },
       data: {
         stripeSessionId: session.id,
-        paymentStatus: 'PENDING'
+        paymentStatus: 'PAID'      // Al retry, asumimos que se pagará
       }
     })
 

@@ -1,10 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export function SplashScreen() {
+  const pathname = usePathname()
+  
+  // Don't show splash screen on admin routes
+  if (pathname.startsWith('/admin')) {
+    return null
+  }
   const [progress, setProgress] = useState(0)
   const [matrixText, setMatrixText] = useState("")
   const [isComplete, setIsComplete] = useState(false)

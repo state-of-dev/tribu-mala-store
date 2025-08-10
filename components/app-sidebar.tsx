@@ -12,86 +12,74 @@ import {
   Store,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar"
 
 // Admin navigation data
-const getAdminData = (user: any) => ({
+const getAdminData = (user: any, pathname: string) => ({
   user: {
     name: user?.name || "Admin User",
     email: user?.email || "admin@example.com",
     avatar: user?.image || "/placeholder-user.jpg",
   },
-  teams: [
-    {
-      name: "Tribu Mala Store",
-      logo: Store,
-      plan: "Panel de Administración",
-    },
-  ],
   navMain: [
     {
-      title: "Panel Principal",
+      title: "Dashboard",
       url: "/admin",
-      icon: LayoutDashboard,
-      isActive: true,
+      icon: BarChart3,
+      isActive: pathname === "/admin",
     },
     {
-      title: "Órdenes",
+      title: "Pedidos",
       url: "/admin/orders",
       icon: ShoppingCart,
+      isActive: pathname.startsWith("/admin/orders"),
     },
     {
-      title: "Productos",
+      title: "Inventario",
       url: "/admin/products",
       icon: Package,
+      isActive: pathname.startsWith("/admin/products"),
     },
     {
-      title: "Usuarios",
+      title: "Clientes",
       url: "/admin/users",
       icon: Users,
+      isActive: pathname.startsWith("/admin/users"),
     },
-    {
-      title: "Pagos",
-      url: "/admin/payments",
-      icon: CreditCard,
-    },
-    {
-      title: "Analíticas",
-      url: "/admin/analytics",
-      icon: BarChart3,
-    },
-    {
-      title: "Configuración",
-      url: "/admin/settings",
-      icon: Settings,
-    },
+    // Pagos se unifica en pedidos
+    // {
+    //   title: "Pagos",
+    //   url: "/admin/payments",
+    //   icon: CreditCard,
+    //   isActive: pathname.startsWith("/admin/payments"),
+    // },
+    // Configuración se comenta por ahora
+    // {
+    //   title: "Configuración",
+    //   url: "/admin/settings",
+    //   icon: Settings,
+    //   isActive: pathname.startsWith("/admin/settings"),
+    // },
   ],
-  projects: [],
 })
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
-  const adminData = getAdminData(session?.user)
+  const pathname = usePathname()
+  const adminData = getAdminData(session?.user, pathname)
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={adminData.teams} />
-      </SidebarHeader>
       <SidebarContent>
         <NavMain items={adminData.navMain} />
-        <NavProjects projects={adminData.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={adminData.user} />

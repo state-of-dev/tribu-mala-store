@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         }
       }),
       prisma.order.count({
-        where: { status: 'PENDING' }
+        where: { status: 'CONFIRMED' }  // Nuevas órdenes confirmadas
       }),
       prisma.order.count({
         where: {
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
         orders: {
           total: totalOrders,
           today: todayOrders,
-          pending: pendingOrders,
+          confirmed: pendingOrders,  // Ahora son órdenes confirmadas
           thisMonth: thisMonthOrders
         },
         revenue: {

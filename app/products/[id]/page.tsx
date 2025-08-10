@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useCart } from "@/context/cart-context"
+import { ProductVariantSelector } from "@/components/product-variant-selector"
 import { 
   Star, 
   Plus, 
@@ -52,6 +53,9 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<any>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -87,12 +91,31 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!product) return
     
+    // Validar que se haya seleccionado talla y color
+    if (product.sizes.length > 0 && !selectedSize) {
+      toast.error("Debes seleccionar una talla")
+      return
+    }
+    
+    if (product.colors.length > 0 && !selectedColor) {
+      toast.error("Debes seleccionar un color")
+      return
+    }
+    
+    // Validar stock de la variante
+    if (selectedVariant && selectedVariant.stock < quantity) {
+      toast.error(`Solo hay ${selectedVariant.stock} unidades disponibles`)
+      return
+    }
+    
     const cartProduct = {
       id: product.id,
       name: product.name,
       price: product.price,
       image1: product.image1,
-      image2: product.image2 || product.image1
+      image2: product.image2 || product.image1,
+      size: selectedSize,
+      color: selectedColor
     }
     
     // Add the item the selected number of times
@@ -100,9 +123,32 @@ export default function ProductDetail() {
       addItem(cartProduct)
     }
     
+    const variantText = selectedSize || selectedColor 
+      ? ` (${[selectedSize, selectedColor].filter(Boolean).join(' - ')})` 
+      : ''
+    
     toast.success("Producto añadido al carrito", {
-      description: `${quantity} ${product.name} añadido${quantity > 1 ? 's' : ''} al carrito`,
+      description: `${quantity} ${product.name}${variantText} añadido${quantity > 1 ? 's' : ''} al carrito`,
     })
+  }
+
+  const canAddToCart = () => {
+    if (!product) return false
+    
+    // Si el producto tiene tallas/colores, deben estar seleccionados
+    const needsSize = product.sizes.length > 0
+    const needsColor = product.colors.length > 0
+    
+    if (needsSize && !selectedSize) return false
+    if (needsColor && !selectedColor) return false
+    
+    // Si hay variante seleccionada, verificar stock
+    if (selectedVariant) {
+      return selectedVariant.stock >= quantity
+    }
+    
+    // Si no hay sistema de variantes, usar stock general
+    return product.stock >= quantity
   }
 
   const images = product ? [
@@ -245,6 +291,23 @@ export default function ProductDetail() {
 
           <Separator />
 
+          {/* Selector de Variantes */}
+          {(product.sizes.length > 0 || product.colors.length > 0) && (
+            <>
+              <ProductVariantSelector
+                productId={product.id}
+                availableSizes={product.sizes}
+                availableColors={product.colors}
+                selectedSize={selectedSize}
+                selectedColor={selectedColor}
+                onSizeChange={setSelectedSize}
+                onColorChange={setSelectedColor}
+                onVariantChange={setSelectedVariant}
+              />
+              <Separator />
+            </>
+          )}
+
           {/* Cantidad y Botones */}
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -260,9 +323,12 @@ export default function ProductDetail() {
                   </button>
                   <span className="px-4 py-2 min-w-16 text-center">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    onClick={() => {
+                      const maxStock = selectedVariant ? selectedVariant.stock : product.stock
+                      setQuantity(Math.min(maxStock, quantity + 1))
+                    }}
                     className="p-2 hover:bg-muted transition-colors"
-                    disabled={quantity >= product.stock}
+                    disabled={quantity >= (selectedVariant ? selectedVariant.stock : product.stock)}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -271,7 +337,12 @@ export default function ProductDetail() {
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="h-4 w-4 text-green-600" />
-                <span>{product.stock} disponibles</span>
+                <span>
+                  {selectedVariant 
+                    ? `${selectedVariant.stock} disponibles` 
+                    : `${product.stock} disponibles`
+                  }
+                </span>
               </div>
             </div>
 
@@ -279,7 +350,7 @@ export default function ProductDetail() {
               <Button 
                 onClick={handleAddToCart} 
                 className="flex-1"
-                disabled={product.stock === 0}
+                disabled={!canAddToCart()}
               >
                 Añadir al Carrito
               </Button>

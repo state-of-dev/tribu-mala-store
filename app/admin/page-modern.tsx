@@ -105,7 +105,6 @@ interface DashboardData {
 export default function ModernDashboard() {
   const { data: session } = useSession()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchDashboardData()
@@ -120,21 +119,9 @@ export default function ModernDashboard() {
       }
     } catch (error) {
       console.error('Error:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto"></div>
-          <p className="mt-4">Cargando dashboard...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-background p-6">

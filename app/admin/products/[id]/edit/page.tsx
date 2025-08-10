@@ -26,6 +26,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { ProductVariantsManager } from "@/components/admin/product-variants-manager"
 import { 
   Save, 
   ArrowLeft, 
@@ -79,7 +80,6 @@ export default function EditProduct({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
   const [product, setProduct] = useState<Product | null>(null)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -114,7 +114,6 @@ export default function EditProduct({ params }: { params: { id: string } }) {
 
   const fetchProduct = async () => {
     try {
-      setLoading(true)
       const response = await fetch(`/api/admin/products/${params.id}`)
       
       if (!response.ok) {
@@ -146,7 +145,6 @@ export default function EditProduct({ params }: { params: { id: string } }) {
       console.error('Error:', error)
       setError(error instanceof Error ? error.message : 'Error desconocido')
     } finally {
-      setLoading(false)
     }
   }
 
@@ -246,46 +244,6 @@ export default function EditProduct({ params }: { params: { id: string } }) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="dark">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="/admin">Admin Panel</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbLink href="/admin/products">Productos</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Editar</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-              <div className="grid auto-rows-min gap-4 md:grid-cols-2">
-                {[1, 2].map((i) => (
-                  <div key={i} className="aspect-video rounded-xl bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min animate-pulse" />
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </div>
-    )
-  }
 
   if (error) {
     return (
@@ -594,6 +552,13 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Gestión de Variantes */}
+                <ProductVariantsManager
+                  productId={parseInt(params.id)}
+                  availableSizes={formData.sizes}
+                  availableColors={formData.colors}
+                />
               </div>
 
               {/* Columna Lateral */}

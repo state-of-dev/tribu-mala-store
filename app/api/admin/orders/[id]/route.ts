@@ -92,7 +92,7 @@ export async function PATCH(
     const { status, adminNotes } = body
 
     // Validar estado
-    const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']
+    const validStatuses = ['CONFIRMED', 'SHIPPED', 'DELIVERED']  // Solo estados simplificados
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json({ error: "Estado inválido" }, { status: 400 })
     }

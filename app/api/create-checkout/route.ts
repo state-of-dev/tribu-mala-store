@@ -133,8 +133,8 @@ export async function POST(request: Request) {
         user: {
           connect: { id: user.id }
         },
-        status: 'PENDING',
-        paymentStatus: 'PENDING',
+        status: 'CONFIRMED',       // Estado inicial simplificado
+        paymentStatus: 'PAID',      // Solo registramos órdenes pagadas
         subtotal: totalAmount,
         shippingCost: 0,
         tax: 0,

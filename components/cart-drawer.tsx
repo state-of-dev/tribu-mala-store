@@ -35,8 +35,11 @@ export function CartDrawer() {
         ) : (
           <>
             <div className="flex-grow overflow-y-auto">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center py-4 border-b border-border">
+              {items.map((item) => {
+                // Generate unique key for each variant
+                const itemKey = `${item.id}-${item.size || 'no-size'}-${item.color || 'no-color'}`
+                return (
+                <div key={itemKey} className="flex items-center py-4 border-b border-border">
                   <div className="relative w-20 h-20 mr-4">
                     <Image
                       src={item.image1 || "/placeholder.svg"}
@@ -47,31 +50,37 @@ export function CartDrawer() {
                   </div>
                   <div className="flex-grow">
                     <h3 className="font-medium text-foreground">{item.name}</h3>
+                    {(item.size || item.color) && (
+                      <p className="text-sm text-muted-foreground">
+                        {[item.size, item.color].filter(Boolean).join(' - ')}
+                      </p>
+                    )}
                     <p className="text-muted-foreground">{new Intl.NumberFormat('es-MX', {
                       style: 'currency',
                       currency: 'MXN'
                     }).format(item.price)}</p>
                     <div className="flex items-center mt-2">
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.size, item.color)}
                         className="p-1 rounded-full bg-muted hover:bg-accent"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="mx-2 text-foreground">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.size, item.color)}
                         className="p-1 rounded-full bg-muted hover:bg-accent"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  <button onClick={() => removeItem(item.id)} className="p-2 text-muted-foreground hover:text-foreground">
+                  <button onClick={() => removeItem(item.id, item.size, item.color)} className="p-2 text-muted-foreground hover:text-foreground">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-              ))}
+                )
+              })}
             </div>
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex justify-between mb-4 text-foreground">

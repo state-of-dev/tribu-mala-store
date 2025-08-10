@@ -10,6 +10,11 @@ function PageLoaderInner() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
+    // Don't show loader on admin routes
+    if (pathname.startsWith('/admin')) {
+      return
+    }
+    
     setIsLoading(true)
     
     const timer = setTimeout(() => {

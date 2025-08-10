@@ -7,7 +7,10 @@ import {
   LogOut,
   User,
   ShoppingBag,
+  LayoutDashboard,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
 
 import {
   Avatar,
@@ -40,6 +43,15 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  const handleNavigation = (path: string) => {
+    router.push(path)
+  }
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/auth/signin" })
+  }
 
   return (
     <SidebarMenu>
@@ -81,21 +93,21 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleNavigation("/admin")} className="cursor-pointer transition-all duration-200 hover:bg-accent/50 hover:scale-[1.02]">
+                <LayoutDashboard />
+                Dashboard
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleNavigation("/profile")} className="cursor-pointer transition-all duration-200 hover:bg-accent/50 hover:scale-[1.02]">
                 <User />
                 Mi Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleNavigation("/orders")} className="cursor-pointer transition-all duration-200 hover:bg-accent/50 hover:scale-[1.02]">
                 <ShoppingBag />
                 Mis Pedidos
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notificaciones
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer transition-all duration-200 hover:bg-red-500/10 hover:text-red-500 hover:scale-[1.02]">
               <LogOut />
               Cerrar Sesión
             </DropdownMenuItem>

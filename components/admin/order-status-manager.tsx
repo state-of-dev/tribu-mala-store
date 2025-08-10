@@ -28,48 +28,28 @@ import {
   RefreshCcw,
   ExternalLink
 } from "lucide-react"
+import { ORDER_STATUS_OPTIONS, PAYMENT_STATUS_OPTIONS } from "@/lib/order-status"
 
 interface OrderStatusManagerProps {
   orderId: string
   orderNumber: string
   currentStatus: string
-  currentPaymentStatus: string
-  stripeSessionId?: string
   onStatusUpdate: (newStatus: string) => Promise<void>
-  onPaymentRetry?: () => Promise<void>
 }
 
 export function OrderStatusManager({
   orderId,
   orderNumber,
   currentStatus,
-  currentPaymentStatus,
-  stripeSessionId,
-  onStatusUpdate,
-  onPaymentRetry
+  onStatusUpdate
 }: OrderStatusManagerProps) {
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const paymentStatuses = [
-    { value: 'PENDING', label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', icon: Clock },
-    { value: 'PAID', label: 'Pagado', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: CheckCircle },
-    { value: 'FAILED', label: 'Fallido', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle },
-    { value: 'REFUNDED', label: 'Reembolsado', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20', icon: RefreshCcw }
-  ]
+  // Usar las opciones simplificadas
+  const orderStatuses = ORDER_STATUS_OPTIONS
 
-  const fulfillmentStatuses = [
-    { value: 'CONFIRMED', label: 'Confirmado', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: CheckCircle },
-    { value: 'SHIPPED', label: 'Enviado', color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20', icon: Truck },
-    { value: 'DELIVERED', label: 'Entregado', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: CheckCircle },
-    { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle }
-  ]
-
-  const getCurrentPaymentStatus = () => {
-    return paymentStatuses.find(s => s.value === currentPaymentStatus) || paymentStatuses[0]
-  }
-
-  const getCurrentFulfillmentStatus = () => {
-    return fulfillmentStatuses.find(s => s.value === currentStatus) || fulfillmentStatuses[0]
+  const getCurrentStatus = () => {
+    return orderStatuses.find(s => s.value === currentStatus) || orderStatuses[0]
   }
 
   const handleStatusUpdate = async (newStatus: string) => {
@@ -83,97 +63,51 @@ export function OrderStatusManager({
     }
   }
 
-  const openStripePayment = () => {
-    if (stripeSessionId) {
-      const stripeUrl = `https://dashboard.stripe.com/payments/${stripeSessionId.replace('cs_', 'pi_')}`
-      window.open(stripeUrl, '_blank')
-    }
-  }
-
-  const paymentStatus = getCurrentPaymentStatus()
-  const PaymentIcon = paymentStatus.icon
-  
-  const fulfillmentStatus = getCurrentFulfillmentStatus()
-  const FulfillmentIcon = fulfillmentStatus.icon
+  const orderStatus = getCurrentStatus()
+  const StatusIcon = orderStatus.icon
 
   return (
-    <div className="space-y-4">
-      {/* Payment Status Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <CreditCard className="h-4 w-4" />
-            Estado del Pago
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Badge className={`${paymentStatus.color} border flex items-center gap-1`}>
-              <PaymentIcon className="h-3 w-3" />
-              {paymentStatus.label}
-            </Badge>
-            <div className="flex gap-1">
-              {currentPaymentStatus === 'FAILED' && onPaymentRetry && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={onPaymentRetry}
-                  className="text-xs"
-                >
-                  <RefreshCcw className="h-3 w-3 mr-1" />
-                  Reintentar
-                </Button>
-              )}
-              {stripeSessionId && (
-                <Button 
-                  size="sm" 
-                  variant="ghost"
-                  onClick={openStripePayment}
-                  className="text-xs"
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  Stripe
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <Card className="relative overflow-hidden transition-all duration-300 ease-out hover:shadow-md hover:border-accent-foreground/20 hover:translate-y-[-2px] hover:scale-[1.005] group">
+      {/* Subtle shine effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-500 ease-out -translate-x-full group-hover:translate-x-full" />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Package className="h-4 w-4" />
+          Estado del Pedido
+        </CardTitle>
+        <CardDescription>
+          Gestiona el estado de la orden #{orderNumber}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Badge className={`${orderStatus.color} border flex items-center gap-1 relative overflow-hidden`}>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
+            <StatusIcon className="h-3 w-3" />
+            {orderStatus.label}
+          </Badge>
+        </div>
 
-      <Separator />
-
-      {/* Fulfillment Status Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Package className="h-4 w-4" />
-            Estado del Pedido
-          </CardTitle>
-          <CardDescription>
-            Gestiona el estado de fulfillment de la orden
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Badge className={`${fulfillmentStatus.color} border flex items-center gap-1`}>
-              <FulfillmentIcon className="h-3 w-3" />
-              {fulfillmentStatus.label}
-            </Badge>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Cambiar estado:</label>
-            <div className="flex gap-2">
-              <Select
-                defaultValue={currentStatus}
-                onValueChange={handleStatusUpdate}
-                disabled={isUpdating}
-              >
-                <SelectTrigger className="flex-1">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Cambiar estado:</label>
+          <div className="flex gap-2">
+            <Select
+              defaultValue={currentStatus}
+              onValueChange={handleStatusUpdate}
+              disabled={isUpdating}
+            >
+              <SelectTrigger className="flex-1 transition-all duration-200 hover:border-accent-foreground/30">
+                {isUpdating ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Actualizando...</span>
+                  </div>
+                ) : (
                   <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fulfillmentStatuses.map((status) => {
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {orderStatuses.map((status) => {
                     const StatusIcon = status.icon
                     return (
                       <SelectItem key={status.value} value={status.value}>
@@ -193,23 +127,28 @@ export function OrderStatusManager({
           <div className="space-y-2">
             <label className="text-sm font-medium">Progreso:</label>
             <div className="space-y-2">
-              {fulfillmentStatuses.slice(0, 3).map((status, index) => {
+              {orderStatuses.map((status, index) => {
                 const StatusIcon = status.icon
                 const isCurrent = status.value === currentStatus
-                const isPast = fulfillmentStatuses.findIndex(s => s.value === currentStatus) > index
+                const isPast = orderStatuses.findIndex(s => s.value === currentStatus) > index
                 const isActive = isCurrent || isPast
                 
                 return (
                   <div 
                     key={status.value}
-                    className={`flex items-center gap-2 text-sm ${
+                    className={`flex items-center gap-2 text-sm transition-all duration-200 hover:scale-105 hover:bg-accent/20 rounded p-1 -m-1 ${
                       isActive ? 'text-foreground' : 'text-muted-foreground'
                     }`}
                   >
-                    <StatusIcon className={`h-3 w-3 ${
+                    <StatusIcon className={`h-3 w-3 transition-all duration-200 ${
                       isActive ? 'text-green-500' : 'text-muted-foreground'
                     }`} />
-                    <span className={isCurrent ? 'font-medium' : ''}>{status.label}</span>
+                    <span className={`transition-all duration-200 ${isCurrent ? 'font-medium' : ''}`}>{status.label}</span>
+                    {isCurrent && (
+                      <div className="ml-auto">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -217,6 +156,5 @@ export function OrderStatusManager({
           </div>
         </CardContent>
       </Card>
-    </div>
-  )
+    )
 }

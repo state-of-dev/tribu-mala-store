@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
         total,
         // Payment info
         stripePaymentId: paymentIntent.id,
-        paymentStatus: 'PENDING',
-        status: 'PENDING',
+        paymentStatus: 'PAID',      // Solo registramos órdenes pagadas
+        status: 'CONFIRMED',       // Estado inicial simplificado
         // Notas
         customerNotes: body.notes || undefined,
         // Items

@@ -26,26 +26,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Package, 
   Search, 
-  Filter, 
   Edit, 
-  Eye, 
   Plus,
-  Download,
-  MoreHorizontal,
-  Star,
   AlertTriangle,
-  TrendingUp,
-  Trash2
+  Trash2,
+  Star,
+  Filter,
+  CheckCircle,
+  XCircle
 } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useAdminProducts } from "@/hooks/use-cached-fetch"
+import { useSmoothLoading } from "@/hooks/use-smooth-loading"
+import { FadeIn, StaggerContainer } from "@/components/ui/fade-in"
 
 interface Product {
   id: number
@@ -79,12 +71,16 @@ export default function AdminProducts() {
   // Usar el hook optimizado con cache
   const { 
     data: productsData, 
-    loading, 
     error, 
     refetch: fetchProducts,
     invalidateCache 
   } = useAdminProducts({
     isActive: activeFilter !== 'all' ? activeFilter : undefined
+  })
+
+  const { showSkeleton, showContent } = useSmoothLoading({ 
+    data: productsData,
+    minLoadingTime: 300
   })
 
   const formatCurrency = (amount: number) => {
@@ -120,42 +116,6 @@ export default function AdminProducts() {
     )
   }, [productsData?.products, searchTerm])
 
-  if (loading) {
-    return (
-      <div className="dark">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="/admin">Panel de Administración</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Productos</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-              <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="aspect-video rounded-xl bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min animate-pulse" />
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </div>
-    )
-  }
 
   if (error) {
     return (
@@ -239,78 +199,94 @@ export default function AdminProducts() {
               </p>
             </div>
 
-            {/* Filtros y Acciones */}
+            {/* Búsqueda y Filtro */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-1 items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nombre, descripción..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                
-                <Select value={activeFilter} onValueChange={setActiveFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="true">Activos</SelectItem>
-                    <SelectItem value="false">Inactivos</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nombre, descripción..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
               </div>
+              
+              <Select value={activeFilter} onValueChange={setActiveFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="true">Activos</SelectItem>
+                  <SelectItem value="false">Inactivos</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtros
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
-                </Button>
-                <Button 
-                  size="sm"
-                  onClick={() => router.push('/admin/products/new')}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Producto
-                </Button>
-              </div>
+              <Button 
+                size="sm"
+                onClick={() => router.push('/admin/products/new')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo
+              </Button>
             </div>
 
             {/* Métricas Rápidas */}
             <div className="grid auto-rows-min gap-4 md:grid-cols-4 mb-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold">{productsData?.pagination.total || 0}</div>
+                  <div className="flex items-center justify-between mb-2">
+                    {showSkeleton ? (
+                      <div className="h-8 w-12 bg-muted rounded animate-pulse" />
+                    ) : (
+                      <div className="text-2xl font-bold">{productsData?.pagination.total || 0}</div>
+                    )}
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </div>
                   <p className="text-sm text-muted-foreground">Total productos</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-green-500">
-                    {productsData?.products.filter(p => p.isActive).length || 0}
+                  <div className="flex items-center justify-between mb-2">
+                    {showSkeleton ? (
+                      <div className="h-8 w-12 bg-muted rounded animate-pulse" />
+                    ) : (
+                      <div className="text-2xl font-bold">
+                        {productsData?.products.filter(p => p.isActive).length || 0}
+                      </div>
+                    )}
+                    <Star className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">Activos</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-red-500">
-                    {productsData?.products.filter(p => !p.isActive).length || 0}
+                  <div className="flex items-center justify-between mb-2">
+                    {showSkeleton ? (
+                      <div className="h-8 w-12 bg-muted rounded animate-pulse" />
+                    ) : (
+                      <div className="text-2xl font-bold">
+                        {productsData?.products.filter(p => !p.isActive).length || 0}
+                      </div>
+                    )}
+                    <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">Inactivos</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-yellow-500">
-                    {productsData?.products.filter(p => p.stock <= 5).length || 0}
+                  <div className="flex items-center justify-between mb-2">
+                    {showSkeleton ? (
+                      <div className="h-8 w-12 bg-muted rounded animate-pulse" />
+                    ) : (
+                      <div className="text-2xl font-bold">
+                        {productsData?.products.filter(p => p.stock <= 5).length || 0}
+                      </div>
+                    )}
+                    <Package className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">Poco stock</p>
                 </CardContent>
@@ -322,14 +298,50 @@ export default function AdminProducts() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Productos ({filteredProducts.length})
+                  {showSkeleton ? (
+                    <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+                  ) : (
+                    `Productos (${filteredProducts.length})`
+                  )}
                 </CardTitle>
                 <CardDescription>
                   Catálogo completo de productos con información de stock y estado
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {filteredProducts.length === 0 ? (
+                {showSkeleton ? (
+                  // Skeleton loading para productos
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="rounded-lg border bg-card/50 overflow-hidden animate-pulse">
+                        <div className="aspect-square bg-muted" />
+                        <div className="p-4 space-y-3">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <div className="h-5 w-32 bg-muted rounded" />
+                              <div className="h-4 w-16 bg-muted rounded" />
+                            </div>
+                            <div className="h-6 w-20 bg-muted rounded" />
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="h-3 w-8 bg-muted rounded text-xs" />
+                                <div className="h-5 w-14 bg-muted rounded-full" />
+                              </div>
+                              <div className="h-3 w-16 bg-muted rounded" />
+                            </div>
+                            <div className="h-8 w-full bg-muted rounded" />
+                          </div>
+                          <div className="flex justify-between pt-2">
+                            <div className="flex gap-2">
+                              <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+                              <div className="h-8 w-20 bg-muted rounded animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : showContent && filteredProducts.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No se encontraron productos</h3>
@@ -337,13 +349,17 @@ export default function AdminProducts() {
                       No hay productos que coincidan con los filtros aplicados.
                     </p>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ) : showContent ? (
+                  <FadeIn>
+                    <StaggerContainer>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
                       <div 
                         key={product.id} 
-                        className="rounded-lg border bg-card/50 hover:bg-accent/50 transition-colors overflow-hidden"
+                        className="relative overflow-hidden rounded-lg border bg-card/50 transition-all duration-300 ease-out hover:shadow-md hover:border-accent-foreground/20 hover:translate-y-[-2px] hover:scale-[1.005] group"
                       >
+                        {/* Subtle shine effect on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-500 ease-out -translate-x-full group-hover:translate-x-full" />
                         <div className="aspect-square relative">
                           <Image 
                             src={product.image1} 
@@ -355,7 +371,8 @@ export default function AdminProducts() {
                           />
                           {product.isFeatured && (
                             <div className="absolute top-2 right-2">
-                              <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                              <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
                                 <Star className="h-3 w-3 mr-1" />
                                 Destacado
                               </Badge>
@@ -367,8 +384,19 @@ export default function AdminProducts() {
                           <div className="space-y-2">
                             <div className="flex items-start justify-between gap-2">
                               <h3 className="font-semibold text-card-foreground line-clamp-2">{product.name}</h3>
-                              <Badge className={`${getProductStatusColor(product.isActive)} text-xs font-medium border shrink-0`}>
-                                {product.isActive ? 'Activo' : 'Inactivo'}
+                              <Badge className={`${getProductStatusColor(product.isActive)} text-xs font-medium border shrink-0 relative overflow-hidden`}>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full group-hover:translate-x-full" />
+                                {product.isActive ? (
+                                  <>
+                                    <CheckCircle className="h-2.5 w-2.5 mr-1" />
+                                    Activo
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-2.5 w-2.5 mr-1" />
+                                    Inactivo
+                                  </>
+                                )}
                               </Badge>
                             </div>
                             
@@ -377,10 +405,24 @@ export default function AdminProducts() {
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-1">
                                 <span className="text-muted-foreground">Stock:</span>
-                                <Badge className={`${getStockStatusColor(product.stock)} text-xs`}>
-                                  {product.stock === 0 ? 'Agotado' : 
-                                   product.stock <= 5 ? `Bajo (${product.stock})` : 
-                                   `${product.stock} unidades`}
+                                <Badge className={`${getStockStatusColor(product.stock)} text-xs relative overflow-hidden`}>
+                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 ease-out -translate-x-full hover:translate-x-full" />
+                                  {product.stock === 0 ? (
+                                    <>
+                                      <XCircle className="h-2.5 w-2.5 mr-1" />
+                                      Agotado
+                                    </>
+                                  ) : product.stock <= 5 ? (
+                                    <>
+                                      <AlertTriangle className="h-2.5 w-2.5 mr-1" />
+                                      Bajo ({product.stock})
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-2.5 w-2.5 mr-1" />
+                                      {product.stock} unidades
+                                    </>
+                                  )}
                                 </Badge>
                               </div>
                               <span className="text-muted-foreground">
@@ -400,51 +442,35 @@ export default function AdminProducts() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => router.push(`/admin/products/${product.id}`)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => router.push(`/admin/products/${product.id}/edit`)}
+                                onClick={() => window.location.href = `/admin/products/${product.id}/edit`}
+                                className="transition-all duration-200 hover:scale-105 active:scale-95 hover:border-primary hover:text-primary hover:bg-primary/10"
                               >
                                 <Edit className="h-4 w-4 mr-1" />
                                 Editar
                               </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="transition-all duration-200 hover:scale-105 active:scale-95 hover:border-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                  if (confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) {
+                                    // TODO: Implementar eliminación
+                                    console.log('Eliminar producto:', product.id)
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Eliminar
+                              </Button>
                             </div>
-                            
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Abrir menú</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem>
-                                  <TrendingUp className="h-4 w-4 mr-2" />
-                                  Ver métricas
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Star className="h-4 w-4 mr-2" />
-                                  {product.isFeatured ? 'Quitar destacado' : 'Marcar destacado'}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Eliminar producto
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
+                      </div>
+                    </StaggerContainer>
+                  </FadeIn>
+                ) : null}
               </CardContent>
             </Card>
           </div>
