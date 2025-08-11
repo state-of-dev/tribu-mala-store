@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { prisma } from "@/lib/prisma"
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 if (!stripeSecretKey) {
@@ -30,16 +31,39 @@ export async function GET(request: Request) {
 
     // Check if the payment was successful
     if (session.payment_status === "paid") {
-      // Here you would typically:
-      // 1. Update your database with the order status
-      // 2. Return order details to the client
+      // Find the order in our database
+      const order = await prisma.order.findUnique({
+        where: { stripeSessionId: sessionId },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          },
+          user: true
+        }
+      })
+
+      if (!order) {
+        // The webhook might not have processed yet, wait a moment and try again
+        console.log("Order not found yet, webhook might still be processing...")
+        return NextResponse.json({
+          success: false,
+          message: "Order is being processed, please wait...",
+          status: "processing"
+        })
+      }
 
       return NextResponse.json({
         success: true,
-        orderId: session.id,
-        customerEmail: session.customer_details?.email,
-        paymentStatus: session.payment_status,
-        shippingDetails: session.shipping_details,
+        order: {
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          total: order.total,
+          status: order.status,
+          paymentStatus: order.paymentStatus
+        }
       })
     } else {
       return NextResponse.json({

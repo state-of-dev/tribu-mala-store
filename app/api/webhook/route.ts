@@ -60,27 +60,68 @@ export async function POST(request: Request) {
         console.log(`Session data:`, JSON.stringify(session, null, 2))
         
         try {
-          console.log(`Looking for order with session ID: ${session.id}`)
+          console.log(`Creating order for successful payment: ${session.id}`)
           
-          // First check if order exists
+          // Check if order already exists to prevent duplicates
           const existingOrder = await prisma.order.findUnique({
             where: { stripeSessionId: session.id }
           })
           
-          if (!existingOrder) {
-            console.error(`No order found with session ID: ${session.id}`)
-            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          if (existingOrder) {
+            console.log(`Order already exists: ${existingOrder.orderNumber}`)
+            return NextResponse.json({ received: true })
           }
-          
-          console.log(`Found order: ${existingOrder.orderNumber}`)
-          console.log(`Order customer email: ${existingOrder.customerEmail}`)
-          
-          // Update order status to PAID
-          const updatedOrder = await prisma.order.update({
-            where: { stripeSessionId: session.id },
-            data: { 
+
+          // Extract data from session metadata
+          const orderNumber = session.metadata?.order_number
+          const userId = session.metadata?.user_id
+          const customerName = session.metadata?.customer_name
+          const customerEmail = session.metadata?.customer_email
+          const customerAddress = session.metadata?.customer_address
+          const customerCity = session.metadata?.customer_city
+          const customerZip = session.metadata?.customer_zip
+          const customerCountry = session.metadata?.customer_country
+          const totalAmount = parseFloat(session.metadata?.total_amount || '0')
+          const itemsData = JSON.parse(session.metadata?.items_data || '[]')
+
+          if (!orderNumber || !customerEmail || itemsData.length === 0) {
+            console.error(`Missing required metadata in session ${session.id}`)
+            return NextResponse.json({ error: "Invalid session metadata" }, { status: 400 })
+          }
+
+          console.log(`Creating new order: ${orderNumber}`)
+
+          // Create the order in database only after successful payment
+          const newOrder = await prisma.order.create({
+            data: {
+              orderNumber,
+              ...(userId && {
+                user: {
+                  connect: { id: userId }
+                }
+              }),
               status: 'CONFIRMED',
-              paymentStatus: 'PAID'
+              paymentStatus: 'PAID',
+              subtotal: totalAmount,
+              shippingCost: 0,
+              tax: 0,
+              total: totalAmount,
+              stripeSessionId: session.id,
+              customerName,
+              customerEmail,
+              shippingAddress: customerAddress,
+              shippingCity: customerCity,
+              shippingZip: customerZip,
+              shippingCountry: customerCountry,
+              items: {
+                create: itemsData.map((item: any) => ({
+                  productId: item.id,
+                  productName: item.name,
+                  productPrice: item.price,
+                  quantity: item.quantity,
+                  total: item.price * item.quantity,
+                }))
+              }
             },
             include: {
               user: true,
@@ -91,21 +132,23 @@ export async function POST(request: Request) {
               }
             }
           })
+
+          const updatedOrder = newOrder
           
           console.log(`Order ${updatedOrder.orderNumber} updated to PAID status`)
           
           // Send confirmation email using order data
-          const customerEmail = updatedOrder.customerEmail || updatedOrder.user?.email
-          const customerName = updatedOrder.customerName || updatedOrder.user?.name || 'Cliente'
+          const orderCustomerEmail = updatedOrder.customerEmail || updatedOrder.user?.email
+          const orderCustomerName = updatedOrder.customerName || updatedOrder.user?.name || 'Cliente'
           
           console.log(`Sending emails for order: ${updatedOrder.orderNumber}`)
           
-          if (customerEmail) {
+          if (orderCustomerEmail) {
             // Preparar datos comunes para ambos emails
             const emailData = {
               orderNumber: updatedOrder.orderNumber,
-              customerName: customerName,
-              customerEmail: customerEmail,
+              customerName: orderCustomerName,
+              customerEmail: orderCustomerEmail,
               items: updatedOrder.items.map(item => ({
                 productName: item.product.name,
                 quantity: item.quantity,
@@ -123,11 +166,11 @@ export async function POST(request: Request) {
             
             // 1. Enviar email de confirmación al cliente
             try {
-              console.log(`Sending confirmation email to customer: ${customerEmail}`)
+              console.log(`Sending confirmation email to customer: ${orderCustomerEmail}`)
               const customerEmailResult = await sendOrderConfirmationEmail(emailData)
               
               if (customerEmailResult.success) {
-                console.log(`Confirmation email sent successfully to customer: ${customerEmail}`)
+                console.log(`Confirmation email sent successfully to customer: ${orderCustomerEmail}`)
               } else {
                 console.error(`Failed to send confirmation email to customer:`, customerEmailResult.error)
               }

@@ -94,9 +94,21 @@ export async function POST(request: Request) {
     const metadata = {
       customer_name: customerInfo.name,
       customer_email: customerInfo.email,
+      customer_address: customerInfo.address,
+      customer_city: customerInfo.city,
+      customer_zip: customerInfo.zip,
+      customer_country: customerInfo.country,
       items_count: items.length.toString(),
+      items_data: JSON.stringify(items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image1: item.image1
+      }))),
       order_number: orderNumber,
       user_id: user.id,
+      total_amount: totalAmount.toString(),
     }
 
     // Create a Stripe checkout session
@@ -125,48 +137,12 @@ export async function POST(request: Request) {
     })
 
     console.log("Checkout session created:", session.id) // Debug log
-
-    // Create pending order in database with correct field names
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        user: {
-          connect: { id: user.id }
-        },
-        status: 'CONFIRMED',       // Estado inicial simplificado
-        paymentStatus: 'PAID',      // Solo registramos órdenes pagadas
-        subtotal: totalAmount,
-        shippingCost: 0,
-        tax: 0,
-        total: totalAmount,
-        stripeSessionId: session.id,
-        customerName: customerInfo.name,
-        customerEmail: customerInfo.email,
-        shippingAddress: customerInfo.address,
-        shippingCity: customerInfo.city,
-        shippingZip: customerInfo.zip,
-        shippingCountry: customerInfo.country,
-        items: {
-          create: items.map(item => ({
-            productId: item.id,
-            productName: item.name,
-            productPrice: item.price,
-            quantity: item.quantity,
-            total: item.price * item.quantity,
-          }))
-        }
-      },
-      include: {
-        items: true
-      }
-    })
-
-    console.log("✅ Order created in database:", order.id, "Number:", orderNumber)
+    console.log("🔄 Order will be created by webhook after successful payment")
 
     return NextResponse.json({ 
       url: session.url,
       orderNumber,
-      orderId: order.id 
+      sessionId: session.id 
     })
   } catch (error: any) {
     console.error("Error creating checkout session:", error)

@@ -27,14 +27,26 @@ function SuccessPageInner() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    if (!orderNumber) {
+    const sessionId = searchParams.get("session_id")
+    
+    // Si no hay orderNumber pero sí session_id, buscar por session_id
+    if (!orderNumber && !sessionId) {
       router.push("/")
       return
     }
 
     async function fetchOrderDetails() {
       try {
-        const response = await fetch(`/api/orders/${orderNumber}`)
+        let response
+        
+        if (orderNumber) {
+          // Buscar por número de orden (flujo antiguo)
+          response = await fetch(`/api/orders/${orderNumber}`)
+        } else if (sessionId) {
+          // Buscar por session_id de Stripe (flujo nuevo)
+          response = await fetch(`/api/verify-session?session_id=${sessionId}`)
+        }
+
         const data = await response.json()
 
         if (data.success) {
