@@ -13,6 +13,7 @@ import { AuthNav } from "@/components/navigation/auth-nav"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PageLoader } from "@/components/page-loader"
 import { ConditionalNavElements } from "@/components/conditional-nav-elements"
+import { ConditionalLogo } from "@/components/conditional-logo"
 
 // Dynamic imports for better performance
 const CartDrawer = dynamic(() => import("@/components/cart-drawer").then(mod => ({ default: mod.CartDrawer })), {
@@ -47,10 +48,8 @@ export default function RootLayout({
             <SplashScreen />
             <PageLoader />
             
-            {/* Logo flotante centrado */}
-            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-              <Logo />
-            </div>
+            {/* Logo flotante centrado (oculto en admin) */}
+            <ConditionalLogo />
             
             {/* Conditional nav elements (hidden in admin) */}
             <ConditionalNavElements />

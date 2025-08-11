@@ -142,30 +142,40 @@ export default function CheckoutPage() {
     try {
       console.log("🛒 Procesando checkout:", { formData, items, total })
       
-      // Crear orden y Payment Intent
-      const response = await fetch('/api/create-order', {
+      // Crear sesión de checkout con Stripe
+      const response = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
           items,
-          total
+          customerInfo: {
+            name: formData.name,
+            email: formData.email,
+            address: formData.address,
+            city: formData.city,
+            zip: formData.zip,
+            country: formData.country || 'MX'
+          }
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al crear la orden')
+        throw new Error(data.error || 'Error al crear la sesión de pago')
       }
 
-      console.log("Orden creada:", data.order)
-      console.log("💳 Payment Intent:", data.paymentIntent.id)
+      console.log("Sesión de checkout creada:", data.sessionId)
+      console.log("Número de orden:", data.orderNumber)
 
-      // Redirigir a página de pago con el Payment Intent
-      router.push(`/checkout/payment?pi=${data.paymentIntent.id}&client_secret=${data.paymentIntent.clientSecret}&order=${data.order.orderNumber}`)
+      // Redirigir directamente a Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No se recibió URL de checkout')
+      }
       
     } catch (error: any) {
       console.error("❌ Error en checkout:", error)

@@ -111,29 +111,151 @@ export async function POST(request: Request) {
       total_amount: totalAmount.toString(),
     }
 
-    // Create a Stripe checkout session
+    // Create a Stripe checkout session with advanced options
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+      // 1. MÉTODOS DE PAGO - Más opciones
+      payment_method_types: [
+        "card",           // Tarjetas de crédito/débito
+        "oxxo",          // OXXO (México)
+        "bancontact",    // Bancontact (Europa)
+        "ideal",         // iDEAL (Países Bajos)
+      ],
+
+      // 2. PRODUCTOS CON INFORMACIÓN COMPLETA
       line_items: items.map((item) => ({
         price_data: {
           currency: "mxn",
           product_data: {
             name: item.name,
+            description: `Producto de alta calidad - ${item.name}`, // Descripción
             images: [item.image1],
-            metadata: { product_id: item.id.toString() },
+            metadata: { 
+              product_id: item.id.toString(),
+              category: "streetwear", // Categoría
+              brand: "Tribu Mala"     // Marca
+            },
           },
-          unit_amount: Math.round(item.price * 100), // Stripe uses cents
+          unit_amount: Math.round(item.price * 100),
+          tax_behavior: "inclusive", // IVA incluido
         },
         quantity: item.quantity,
       })),
+
+      // 3. CONFIGURACIÓN BÁSICA
       mode: "payment",
-      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/checkout`,
+      
+      // 4. URLs DE REDIRECCIÓN MEJORADAS
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_number=${orderNumber}`,
+      cancel_url: `${baseUrl}/checkout?canceled=true`,
+
+      // 5. INFORMACIÓN DEL CLIENTE
       customer_email: customerInfo.email,
-      metadata,
+      customer_creation: "always", // Crear cliente en Stripe siempre
+      
+      // 6. RECOLECCIÓN DE DIRECCIONES
       shipping_address_collection: {
-        allowed_countries: ["US", "CA", "MX"], // Add countries you ship to
+        allowed_countries: [
+          "MX", // México
+          "US", // Estados Unidos  
+          "CA", // Canadá
+          "ES", // España
+          "AR", // Argentina
+          "CO", // Colombia
+          "PE", // Perú
+          "CL", // Chile
+        ],
       },
+      billing_address_collection: "required", // Requerir dirección de facturación
+      
+      // 7. CONFIGURACIÓN DE ENVÍO
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: {
+              amount: 0, // Envío gratis
+              currency: "mxn",
+            },
+            display_name: "Envío Gratuito",
+            delivery_estimate: {
+              minimum: {
+                unit: "business_day",
+                value: 3,
+              },
+              maximum: {
+                unit: "business_day", 
+                value: 7,
+              },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: {
+              amount: 15000, // $150 MXN express
+              currency: "mxn",
+            },
+            display_name: "Envío Express",
+            delivery_estimate: {
+              minimum: {
+                unit: "business_day",
+                value: 1,
+              },
+              maximum: {
+                unit: "business_day",
+                value: 2,
+              },
+            },
+          },
+        },
+      ],
+
+      // 8. CONFIGURACIONES AVANZADAS DE UX
+      allow_promotion_codes: true, // Permitir códigos de descuento
+      automatic_tax: {
+        enabled: false, // Desactivar cálculo automático de impuestos
+      },
+      payment_intent_data: {
+        capture_method: "automatic", // Capturar pago inmediatamente
+        setup_future_usage: "on_session", // Guardar método de pago para futuras compras
+        statement_descriptor: "TRIBU MALA STORE", // Aparece en estado de cuenta
+        statement_descriptor_suffix: orderNumber.slice(-8), // Sufijo con número de orden
+      },
+
+      // 9. CONFIGURACIÓN DE IDIOMA Y REGIÓN  
+      locale: "es", // Español
+
+      // 10. PERSONALIZACIÓN VISUAL
+      custom_text: {
+        shipping_address: {
+          message: "🚚 Selecciona donde quieres recibir tu pedido"
+        },
+        submit: {
+          message: "🔒 Pago 100% seguro con cifrado SSL"
+        },
+      },
+
+      // 11. CONFIGURACIÓN DE EXPIRACIÓN
+      expires_at: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutos
+
+      // 12. METADATOS EXTENDIDOS
+      metadata: {
+        ...metadata,
+        store_name: "Tribu Mala Store",
+        order_type: "online_purchase",
+        checkout_version: "v2.0",
+        customer_country: customerInfo.country,
+        items_total: items.length.toString(),
+      },
+
+      // 13. CONFIGURACIÓN ADICIONAL DE EXPERIENCIA
+      consent_collection: {
+        terms_of_service: "required", // Requerir aceptación de términos
+      },
+      
+      // 14. CONFIGURACIÓN DE MÉTODOS DE PAGO POR PAÍS
+      payment_method_configuration: undefined, // Usar configuración por defecto optimizada
     })
 
     console.log("Checkout session created:", session.id) // Debug log
