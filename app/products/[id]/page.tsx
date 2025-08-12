@@ -23,6 +23,13 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+interface ProductVariant {
+  id: string
+  size: string
+  color: string
+  stock: number
+}
+
 interface Product {
   id: number
   name: string
@@ -33,8 +40,7 @@ interface Product {
   image3: string | null
   category: string | null
   stock: number
-  sizes: string[]
-  colors: string[]
+  variants: ProductVariant[]
   slug: string | null
   metaTitle: string | null
   metaDescription: string | null
@@ -88,16 +94,20 @@ export default function ProductDetail() {
     }
   }
 
+  // Extraer tallas y colores únicos de las variantes
+  const availableSizes = product ? [...new Set(product.variants.map(v => v.size))] : []
+  const availableColors = product ? [...new Set(product.variants.map(v => v.color))] : []
+
   const handleAddToCart = () => {
     if (!product) return
     
     // Validar que se haya seleccionado talla y color
-    if (product.sizes.length > 0 && !selectedSize) {
+    if (availableSizes.length > 0 && !selectedSize) {
       toast.error("Debes seleccionar una talla")
       return
     }
     
-    if (product.colors.length > 0 && !selectedColor) {
+    if (availableColors.length > 0 && !selectedColor) {
       toast.error("Debes seleccionar un color")
       return
     }
@@ -136,8 +146,8 @@ export default function ProductDetail() {
     if (!product) return false
     
     // Si el producto tiene tallas/colores, deben estar seleccionados
-    const needsSize = product.sizes.length > 0
-    const needsColor = product.colors.length > 0
+    const needsSize = availableSizes.length > 0
+    const needsColor = availableColors.length > 0
     
     if (needsSize && !selectedSize) return false
     if (needsColor && !selectedColor) return false
@@ -292,12 +302,13 @@ export default function ProductDetail() {
           <Separator />
 
           {/* Selector de Variantes */}
-          {(product.sizes.length > 0 || product.colors.length > 0) && (
+          {(availableSizes.length > 0 || availableColors.length > 0) && (
             <>
               <ProductVariantSelector
                 productId={product.id}
-                availableSizes={product.sizes}
-                availableColors={product.colors}
+                variants={product.variants}
+                availableSizes={availableSizes}
+                availableColors={availableColors}
                 selectedSize={selectedSize}
                 selectedColor={selectedColor}
                 onSizeChange={setSelectedSize}

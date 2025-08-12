@@ -30,26 +30,23 @@ import {
   ArrowLeft,
   Loader2,
   X,
-  Plus
+  Plus,
+  Upload,
+  Image as ImageIcon
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { ProductVariantsManager, ProductVariant } from "@/components/admin/product-variants-manager"
+import { ImageManager } from "@/components/admin/image-manager"
+import { ProductPreviewCard } from "@/components/admin/product-preview-card"
 
 interface ProductFormData {
   name: string
   description: string
   price: string
-  stock: string
-  image1: string
-  image2: string
-  image3: string
+  images: string[]
   category: string
-  sizes: string[]
-  colors: string[]
-  slug: string
-  metaTitle: string
-  metaDescription: string
+  variants: ProductVariant[]
   isActive: boolean
-  isFeatured: boolean
 }
 
 export default function NewProduct() {
@@ -61,81 +58,111 @@ export default function NewProduct() {
     name: '',
     description: '',
     price: '',
-    stock: '0',
-    image1: '',
-    image2: '',
-    image3: '',
+    images: [''], // Imagen principal vacía inicialmente
     category: '',
-    sizes: [],
-    colors: [],
-    slug: '',
-    metaTitle: '',
-    metaDescription: '',
-    isActive: true,
-    isFeatured: false
+    variants: [],
+    isActive: true
   })
 
-  const [newSize, setNewSize] = useState('')
-  const [newColor, setNewColor] = useState('')
+  const [uploadingImages, setUploadingImages] = useState<boolean[]>([])
+  const [previewImages, setPreviewImages] = useState<string[]>([])
 
   const categories = ['Hoodies', 'T-Shirts', 'Sweatshirts', 'Pants', 'Accessories']
-  const commonSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-  const commonColors = ['Black', 'White', 'Gray', 'Navy', 'Cream', 'Red', 'Blue', 'Green']
 
-  const handleInputChange = (field: keyof ProductFormData, value: string | boolean | string[]) => {
+  const handleInputChange = (field: keyof ProductFormData, value: string | boolean | string[] | ProductVariant[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
-  const addSize = (size: string) => {
-    if (size && !formData.sizes.includes(size)) {
-      handleInputChange('sizes', [...formData.sizes, size])
+  const addImageSlot = () => {
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, '']
+    }))
+  }
+
+  const removeImage = (index: number) => {
+    if (index === 0) return // No permitir eliminar la imagen principal
+    
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+    
+    // Limpiar preview si existe
+    setPreviewImages(prev => prev.filter((_, i) => i !== index))
+    setUploadingImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateImage = (index: number, url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => i === index ? url : img)
+    }))
+  }
+
+
+  const handleImageUpload = async (file: File, imageField: string) => {
+    try {
+      setUploadingImages(prev => ({ ...prev, [imageField]: true }))
+
+      // Create preview
+      const previewUrl = URL.createObjectURL(file)
+      setPreviewImages(prev => ({ ...prev, [imageField]: previewUrl }))
+
+      const filename = `products/${Date.now()}-${file.name}`
+      const response = await fetch(`/api/upload?filename=${filename}`, {
+        method: 'POST',
+        body: file
+      })
+
+      if (!response.ok) {
+        throw new Error('Error uploading image')
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        handleInputChange(imageField as keyof ProductFormData, data.url)
+        toast({
+          title: "Imagen subida",
+          description: "La imagen se ha subido correctamente",
+        })
+      } else {
+        throw new Error(data.error || 'Error uploading image')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast({
+        title: "Error",
+        description: "Error al subir la imagen",
+        variant: "destructive"
+      })
+      // Remove preview on error
+      setPreviewImages(prev => {
+        const newPrev = { ...prev }
+        delete newPrev[imageField]
+        return newPrev
+      })
+    } finally {
+      setUploadingImages(prev => ({ ...prev, [imageField]: false }))
     }
-    setNewSize('')
   }
 
-  const removeSize = (size: string) => {
-    handleInputChange('sizes', formData.sizes.filter(s => s !== size))
+  // Calcular stock total automáticamente
+  const calculateTotalStock = () => {
+    return formData.variants?.reduce((total, variant) => total + variant.stock, 0) || 0
   }
 
-  const addColor = (color: string) => {
-    if (color && !formData.colors.includes(color)) {
-      handleInputChange('colors', [...formData.colors, color])
-    }
-    setNewColor('')
-  }
-
-  const removeColor = (color: string) => {
-    handleInputChange('colors', formData.colors.filter(c => c !== color))
-  }
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
-
-  const handleNameChange = (name: string) => {
-    handleInputChange('name', name)
-    if (!formData.slug || formData.slug === generateSlug(formData.name)) {
-      handleInputChange('slug', generateSlug(name))
-    }
-    if (!formData.metaTitle || formData.metaTitle === `${formData.name} - Premium Streetwear`) {
-      handleInputChange('metaTitle', `${name} - Premium Streetwear`)
-    }
-  }
 
   const handleSave = async () => {
     try {
       setSaving(true)
 
       // Validación básica
-      if (!formData.name || !formData.price || !formData.image1) {
+      if (!formData.name || !formData.price || !formData.images[0]) {
         toast({
           title: "Error de validación",
           description: "Nombre, precio e imagen principal son requeridos",
@@ -144,10 +171,27 @@ export default function NewProduct() {
         return
       }
 
+      // Validación de variantes
+      if (!formData.variants || formData.variants.length === 0) {
+        toast({
+          title: "Error de validación",
+          description: "Debe agregar al menos una variante con talla, color y stock",
+          variant: "destructive"
+        })
+        return
+      }
+
       const createData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock) || 0
+        image1: formData.images[0] || '',
+        image2: formData.images[1] || '',
+        image3: formData.images[2] || '',
+        category: formData.category,
+        isActive: formData.isActive,
+        stock: calculateTotalStock(), // Stock calculado automáticamente
+        variants: formData.variants
       }
 
       const response = await fetch(`/api/admin/products`, {
@@ -256,7 +300,7 @@ export default function NewProduct() {
                       <Input
                         id="name"
                         value={formData.name}
-                        onChange={(e) => handleNameChange(e.target.value)}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="Ej: Tribu Mala Classic Black Hoodie"
                       />
                     </div>
@@ -274,7 +318,7 @@ export default function NewProduct() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="price">Precio ($MXN) *</Label>
+                        <Label htmlFor="price" className="block mb-2">Precio ($MXN) *</Label>
                         <Input
                           id="price"
                           type="number"
@@ -282,22 +326,13 @@ export default function NewProduct() {
                           value={formData.price}
                           onChange={(e) => handleInputChange('price', e.target.value)}
                           placeholder="149.99"
+                          className="h-10"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="stock">Stock</Label>
-                        <Input
-                          id="stock"
-                          type="number"
-                          value={formData.stock}
-                          onChange={(e) => handleInputChange('stock', e.target.value)}
-                          placeholder="25"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="category">Categoría</Label>
+                        <Label htmlFor="category" className="block mb-2">Categoría</Label>
                         <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-10">
                             <SelectValue placeholder="Seleccionar categoría" />
                           </SelectTrigger>
                           <SelectContent>
@@ -309,6 +344,16 @@ export default function NewProduct() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label htmlFor="isActive" className="block mb-2">Producto Activo</Label>
+                        <div className="h-10 flex items-center justify-center border rounded-md bg-background">
+                          <Switch
+                            id="isActive"
+                            checked={formData.isActive}
+                            onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -318,230 +363,68 @@ export default function NewProduct() {
                   <CardHeader>
                     <CardTitle>Imágenes del Producto</CardTitle>
                     <CardDescription>
-                      URLs de las imágenes (la primera es obligatoria)
+                      Sube las imágenes de tu producto (la primera es obligatoria)
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="image1">Imagen Principal *</Label>
-                      <Input
-                        id="image1"
-                        value={formData.image1}
-                        onChange={(e) => handleInputChange('image1', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen1.jpg"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="image2">Imagen Secundaria</Label>
-                      <Input
-                        id="image2"
-                        value={formData.image2}
-                        onChange={(e) => handleInputChange('image2', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen2.jpg"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="image3">Imagen Terciaria</Label>
-                      <Input
-                        id="image3"
-                        value={formData.image3}
-                        onChange={(e) => handleInputChange('image3', e.target.value)}
-                        placeholder="https://ejemplo.com/imagen3.jpg"
-                      />
-                    </div>
+                  <CardContent>
+                    <ImageManager 
+                      images={formData.images}
+                      onImagesChange={(images) => handleInputChange('images', images)}
+                    />
                   </CardContent>
                 </Card>
 
-                {/* Variantes */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Variantes del Producto</CardTitle>
-                    <CardDescription>
-                      Tallas y colores disponibles
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Tallas */}
-                    <div>
-                      <Label>Tallas Disponibles</Label>
-                      <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                        {formData.sizes.map((size) => (
-                          <Badge key={size} variant="outline" className="px-3 py-1">
-                            {size}
-                            <button
-                              type="button"
-                              onClick={() => removeSize(size)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Select value={newSize} onValueChange={setNewSize}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Talla" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {commonSizes.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => addSize(newSize)}
-                          disabled={!newSize || formData.sizes.includes(newSize)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Añadir
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Colores */}
-                    <div>
-                      <Label>Colores Disponibles</Label>
-                      <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                        {formData.colors.map((color) => (
-                          <Badge key={color} variant="outline" className="px-3 py-1">
-                            {color}
-                            <button
-                              type="button"
-                              onClick={() => removeColor(color)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Select value={newColor} onValueChange={setNewColor}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Color" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {commonColors.map((color) => (
-                              <SelectItem key={color} value={color}>
-                                {color}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => addColor(newColor)}
-                          disabled={!newColor || formData.colors.includes(newColor)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Añadir
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Gestión de Variantes */}
+                <ProductVariantsManager
+                  variants={formData.variants}
+                  onVariantsChange={(variants) => handleInputChange('variants', variants)}
+                  category={formData.category}
+                />
               </div>
 
               {/* Columna Lateral */}
               <div className="space-y-6">
-                {/* Estado del Producto */}
+                {/* Resumen del Producto */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Estado del Producto</CardTitle>
+                    <CardTitle>Resumen</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isActive">Producto Activo</Label>
-                      <Switch
-                        id="isActive"
-                        checked={formData.isActive}
-                        onCheckedChange={(checked) => handleInputChange('isActive', checked)}
-                      />
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Stock Total:</span>
+                      <span className="font-medium">{calculateTotalStock()} unidades</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isFeatured">Producto Destacado</Label>
-                      <Switch
-                        id="isFeatured"
-                        checked={formData.isFeatured}
-                        onCheckedChange={(checked) => handleInputChange('isFeatured', checked)}
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Variantes:</span>
+                      <span className="font-medium">{formData.variants?.length || 0}</span>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* SEO */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>SEO</CardTitle>
-                    <CardDescription>
-                      Optimización para motores de búsqueda
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="slug">URL Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => handleInputChange('slug', e.target.value)}
-                        placeholder="tribu-mala-classic-black-hoodie"
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Imágenes:</span>
+                      <span className="font-medium">{formData.images?.filter(img => img).length || 0}</span>
                     </div>
-                    <div>
-                      <Label htmlFor="metaTitle">Meta Título</Label>
-                      <Input
-                        id="metaTitle"
-                        value={formData.metaTitle}
-                        onChange={(e) => handleInputChange('metaTitle', e.target.value)}
-                        placeholder="Tribu Mala Classic Black Hoodie - Premium Streetwear"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="metaDescription">Meta Descripción</Label>
-                      <Textarea
-                        id="metaDescription"
-                        value={formData.metaDescription}
-                        onChange={(e) => handleInputChange('metaDescription', e.target.value)}
-                        placeholder="Descripción para motores de búsqueda..."
-                        rows={3}
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Estado:</span>
+                      <span className={`text-sm font-medium ${
+                        formData.isActive ? 'text-green-600' : 'text-gray-500'
+                      }`}>
+                        {formData.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Vista Previa */}
-                {formData.image1 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Vista Previa</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                        <img
-                          src={formData.image1}
-                          alt={formData.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = '/placeholder.jpg'
-                          }}
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <h3 className="font-semibold line-clamp-1">{formData.name || 'Nombre del producto'}</h3>
-                        <p className="text-lg font-bold text-primary">
-                          {formData.price ? `${formData.price}` : '$0 MXN.00'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Vista Previa</h3>
+                  <ProductPreviewCard
+                    name={formData.name}
+                    price={formData.price}
+                    images={formData.images}
+                    category={formData.category}
+                    isActive={formData.isActive}
+                    stock={calculateTotalStock()}
+                  />
+                </div>
               </div>
             </div>
           </div>

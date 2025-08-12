@@ -22,25 +22,8 @@ export async function GET(
         id: productId,
         isActive: true // Solo productos activos
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        price: true,
-        stock: true,
-        image1: true,
-        image2: true,
-        image3: true,
-        category: true,
-        sizes: true,
-        colors: true,
-        slug: true,
-        metaTitle: true,
-        metaDescription: true,
-        isFeatured: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        variants: true
       }
     })
 

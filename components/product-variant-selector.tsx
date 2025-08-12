@@ -18,6 +18,7 @@ interface ProductVariant {
 
 interface ProductVariantSelectorProps {
   productId: number
+  variants: ProductVariant[]
   availableSizes: string[]
   availableColors: string[]
   selectedSize: string | null
@@ -29,6 +30,7 @@ interface ProductVariantSelectorProps {
 
 export function ProductVariantSelector({
   productId,
+  variants,
   availableSizes,
   availableColors,
   selectedSize,
@@ -37,15 +39,6 @@ export function ProductVariantSelector({
   onColorChange,
   onVariantChange
 }: ProductVariantSelectorProps) {
-  const [variants, setVariants] = useState<ProductVariant[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (productId) {
-      loadVariants()
-    }
-  }, [productId])
-
   useEffect(() => {
     // Notificar el cambio de variante cuando se seleccionan size y color
     if (selectedSize && selectedColor) {
@@ -55,22 +48,6 @@ export function ProductVariantSelector({
       onVariantChange?.(null)
     }
   }, [selectedSize, selectedColor, variants, onVariantChange])
-
-  const loadVariants = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/products/${productId}/variants`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setVariants(data.variants || [])
-      }
-    } catch (error) {
-      console.error('Error loading variants:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getVariantStock = (size: string, color: string) => {
     const variant = variants.find(v => v.size === size && v.color === color)

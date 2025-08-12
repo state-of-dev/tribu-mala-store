@@ -24,9 +24,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ImageUpload } from "@/components/ui/image-upload"
-import { ProductVariantsManager } from "@/components/admin/product-variants-manager"
+import { ProductVariantsManager, ProductVariant } from "@/components/admin/product-variants-manager"
+import { ImageManager } from "@/components/admin/image-manager"
+import { ProductPreviewCard } from "@/components/admin/product-preview-card"
 import { 
   Save, 
   ArrowLeft, 
@@ -42,18 +42,12 @@ interface Product {
   name: string
   description: string | null
   price: number
-  stock: number
   image1: string
   image2: string | null
   image3: string | null
   category: string | null
-  sizes: string[]
-  colors: string[]
-  slug: string | null
-  metaTitle: string | null
-  metaDescription: string | null
+  variants: ProductVariant[]
   isActive: boolean
-  isFeatured: boolean
   createdAt: string
   updatedAt: string
 }
@@ -62,18 +56,184 @@ interface ProductFormData {
   name: string
   description: string
   price: string
-  stock: string
-  image1: string
-  image2: string
-  image3: string
+  images: string[]
   category: string
-  sizes: string[]
-  colors: string[]
-  slug: string
-  metaTitle: string
-  metaDescription: string
+  variants: ProductVariant[]
   isActive: boolean
-  isFeatured: boolean
+}
+
+interface ImageUploadProps {
+  label: string
+  value: string
+  onChange: (url: string) => void
+  isUploading?: boolean
+  onUploadStart?: () => void
+  onUploadEnd?: () => void
+  required?: boolean
+}
+
+function ImageUpload({ 
+  label, 
+  value, 
+  onChange, 
+  isUploading, 
+  onUploadStart, 
+  onUploadEnd, 
+  required 
+}: ImageUploadProps) {
+  const { toast } = useToast()
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+
+  const handleFileSelect = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      onUploadStart?.()
+      
+      // Create preview
+      const previewUrl = URL.createObjectURL(file)
+      setPreview(previewUrl)
+
+      const filename = `products/${Date.now()}-${file.name}`
+      const response = await fetch(`/api/upload?filename=${filename}`, {
+        method: 'POST',
+        body: file
+      })
+
+      if (!response.ok) {
+        throw new Error('Error uploading image')
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        onChange(data.url)
+        toast({
+          title: "Imagen subida",
+          description: "La imagen se ha subido correctamente",
+        })
+      } else {
+        throw new Error(data.error || 'Error uploading image')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast({
+        title: "Error",
+        description: "Error al subir la imagen",
+        variant: "destructive"
+      })
+      setPreview(null)
+    } finally {
+      onUploadEnd?.()
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      handleFileSelect(files[0])
+    }
+  }
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleFileSelect(files[0])
+    }
+  }
+
+  const currentImage = preview || value
+
+  return (
+    <div className="space-y-3">
+      <Label>{label} {required && "*"}</Label>
+      
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
+          ${isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}
+          ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
+        `}
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+        onDragLeave={() => setIsDragOver(false)}
+        onClick={() => {
+          if (!isUploading) {
+            document.getElementById(`file-input-${label}`)?.click()
+          }
+        }}
+      >
+        <input
+          id={`file-input-${label}`}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileInputChange}
+          disabled={isUploading}
+        />
+        
+        {currentImage ? (
+          <div className="space-y-3">
+            <div className="relative inline-block">
+              <img
+                src={currentImage}
+                alt={label}
+                className="max-w-full max-h-32 rounded-lg object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = '/placeholder.jpg'
+                }}
+              />
+              {value && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onChange('')
+                    setPreview(null)
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Click para cambiar la imagen
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {isUploading ? (
+              <Loader2 className="h-8 w-8 mx-auto animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+            )}
+            <div>
+              <p className="text-sm font-medium">
+                {isUploading ? 'Subiendo imagen...' : 'Arrastra una imagen aquí o click para seleccionar'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                PNG, JPG, GIF hasta 10MB
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default function EditProduct({ params }: { params: { id: string } }) {
@@ -87,26 +247,31 @@ export default function EditProduct({ params }: { params: { id: string } }) {
     name: '',
     description: '',
     price: '',
-    stock: '',
-    image1: '',
-    image2: '',
-    image3: '',
+    images: [''],
     category: '',
-    sizes: [],
-    colors: [],
-    slug: '',
-    metaTitle: '',
-    metaDescription: '',
-    isActive: true,
-    isFeatured: false
+    variants: [],
+    isActive: true
   })
 
-  const [newSize, setNewSize] = useState('')
-  const [newColor, setNewColor] = useState('')
+  const [isUploading, setIsUploading] = useState({
+    image1: false,
+    image2: false,
+    image3: false
+  })
 
   const categories = ['Hoodies', 'T-Shirts', 'Sweatshirts', 'Pants', 'Accessories']
-  const commonSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-  const commonColors = ['Black', 'White', 'Gray', 'Navy', 'Cream', 'Red', 'Blue', 'Green']
+  
+  const handleInputChange = (field: keyof ProductFormData, value: string | boolean | ProductVariant[]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  // Calcular stock total automáticamente
+  const calculateTotalStock = () => {
+    return formData.variants?.reduce((total, variant) => total + variant.stock, 0) || 0
+  }
 
   useEffect(() => {
     fetchProduct()
@@ -124,72 +289,29 @@ export default function EditProduct({ params }: { params: { id: string } }) {
       const productData = data.product
       
       setProduct(productData)
+      // Convertir imágenes a array - asegurar que al menos tengamos un slot vacío
+      const images = []
+      if (productData.image1) images.push(productData.image1)
+      if (productData.image2) images.push(productData.image2)
+      if (productData.image3) images.push(productData.image3)
+      
+      // Asegurar que tenemos al menos un slot para imagen principal
+      if (images.length === 0) {
+        images.push('')
+      }
+      
       setFormData({
         name: productData.name || '',
         description: productData.description || '',
         price: productData.price?.toString() || '',
-        stock: productData.stock?.toString() || '',
-        image1: productData.image1 || '',
-        image2: productData.image2 || '',
-        image3: productData.image3 || '',
+        images: images,
         category: productData.category || '',
-        sizes: productData.sizes || [],
-        colors: productData.colors || [],
-        slug: productData.slug || '',
-        metaTitle: productData.metaTitle || '',
-        metaDescription: productData.metaDescription || '',
-        isActive: productData.isActive,
-        isFeatured: productData.isFeatured
+        variants: productData.variants || [],
+        isActive: productData.isActive
       })
     } catch (error) {
       console.error('Error:', error)
       setError(error instanceof Error ? error.message : 'Error desconocido')
-    } finally {
-    }
-  }
-
-  const handleInputChange = (field: keyof ProductFormData, value: string | boolean | string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const addSize = (size: string) => {
-    if (size && !formData.sizes.includes(size)) {
-      handleInputChange('sizes', [...formData.sizes, size])
-    }
-    setNewSize('')
-  }
-
-  const removeSize = (size: string) => {
-    handleInputChange('sizes', formData.sizes.filter(s => s !== size))
-  }
-
-  const addColor = (color: string) => {
-    if (color && !formData.colors.includes(color)) {
-      handleInputChange('colors', [...formData.colors, color])
-    }
-    setNewColor('')
-  }
-
-  const removeColor = (color: string) => {
-    handleInputChange('colors', formData.colors.filter(c => c !== color))
-  }
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
-
-  const handleNameChange = (name: string) => {
-    handleInputChange('name', name)
-    if (!formData.slug || formData.slug === generateSlug(formData.name)) {
-      handleInputChange('slug', generateSlug(name))
     }
   }
 
@@ -198,7 +320,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
       setSaving(true)
 
       // Validación básica
-      if (!formData.name || !formData.price || !formData.image1) {
+      if (!formData.name || !formData.price || !formData.images[0]) {
         toast({
           title: "Error de validación",
           description: "Nombre, precio e imagen principal son requeridos",
@@ -207,10 +329,27 @@ export default function EditProduct({ params }: { params: { id: string } }) {
         return
       }
 
+      // Validación de variantes
+      if (!formData.variants || formData.variants.length === 0) {
+        toast({
+          title: "Error de validación",
+          description: "Debe agregar al menos una variante con talla, color y stock",
+          variant: "destructive"
+        })
+        return
+      }
+
       const updateData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock) || 0
+        image1: formData.images[0] || '',
+        image2: formData.images[1] || '',
+        image3: formData.images[2] || '',
+        category: formData.category,
+        isActive: formData.isActive,
+        stock: calculateTotalStock(), // Stock calculado automáticamente
+        variants: formData.variants
       }
 
       const response = await fetch(`/api/admin/products/${params.id}`, {
@@ -243,7 +382,6 @@ export default function EditProduct({ params }: { params: { id: string } }) {
       setSaving(false)
     }
   }
-
 
   if (error) {
     return (
@@ -372,7 +510,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                       <Input
                         id="name"
                         value={formData.name}
-                        onChange={(e) => handleNameChange(e.target.value)}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="Ej: Tribu Mala Classic Black Hoodie"
                       />
                     </div>
@@ -390,7 +528,7 @@ export default function EditProduct({ params }: { params: { id: string } }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="price">Precio ($MXN) *</Label>
+                        <Label htmlFor="price" className="block mb-2">Precio ($MXN) *</Label>
                         <Input
                           id="price"
                           type="number"
@@ -398,22 +536,13 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                           value={formData.price}
                           onChange={(e) => handleInputChange('price', e.target.value)}
                           placeholder="149.99"
+                          className="h-10"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="stock">Stock</Label>
-                        <Input
-                          id="stock"
-                          type="number"
-                          value={formData.stock}
-                          onChange={(e) => handleInputChange('stock', e.target.value)}
-                          placeholder="25"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="category">Categoría</Label>
+                        <Label htmlFor="category" className="block mb-2">Categoría</Label>
                         <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-10">
                             <SelectValue placeholder="Seleccionar categoría" />
                           </SelectTrigger>
                           <SelectContent>
@@ -425,6 +554,16 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label htmlFor="isActive" className="block mb-2">Producto Activo</Label>
+                        <div className="h-10 flex items-center justify-center border rounded-md bg-background">
+                          <Switch
+                            id="isActive"
+                            checked={formData.isActive}
+                            onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -434,227 +573,78 @@ export default function EditProduct({ params }: { params: { id: string } }) {
                   <CardHeader>
                     <CardTitle>Imágenes del Producto</CardTitle>
                     <CardDescription>
-                      Sube imágenes o pega URLs (la primera es obligatoria)
+                      Sube las imágenes de tu producto (la primera es obligatoria)
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <ImageUpload
-                      label="Imagen Principal"
-                      value={formData.image1}
-                      onChange={(url) => handleInputChange('image1', url)}
-                      placeholder="https://ejemplo.com/imagen1.jpg"
-                      required={true}
+                  <CardContent>
+                    <ImageManager 
+                      images={formData.images}
+                      onImagesChange={(images) => handleInputChange('images', images)}
                     />
-                    <ImageUpload
-                      label="Imagen Secundaria"
-                      value={formData.image2}
-                      onChange={(url) => handleInputChange('image2', url)}
-                      placeholder="https://ejemplo.com/imagen2.jpg"
-                    />
-                    <ImageUpload
-                      label="Imagen Terciaria"
-                      value={formData.image3}
-                      onChange={(url) => handleInputChange('image3', url)}
-                      placeholder="https://ejemplo.com/imagen3.jpg"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Variantes */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Variantes del Producto</CardTitle>
-                    <CardDescription>
-                      Tallas y colores disponibles
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Tallas */}
-                    <div>
-                      <Label>Tallas Disponibles</Label>
-                      <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                        {formData.sizes.map((size) => (
-                          <Badge key={size} variant="outline" className="px-3 py-1">
-                            {size}
-                            <button
-                              type="button"
-                              onClick={() => removeSize(size)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Select value={newSize} onValueChange={setNewSize}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Talla" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {commonSizes.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => addSize(newSize)}
-                          disabled={!newSize || formData.sizes.includes(newSize)}
-                        >
-                          Añadir
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Colores */}
-                    <div>
-                      <Label>Colores Disponibles</Label>
-                      <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                        {formData.colors.map((color) => (
-                          <Badge key={color} variant="outline" className="px-3 py-1">
-                            {color}
-                            <button
-                              type="button"
-                              onClick={() => removeColor(color)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Select value={newColor} onValueChange={setNewColor}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Color" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {commonColors.map((color) => (
-                              <SelectItem key={color} value={color}>
-                                {color}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => addColor(newColor)}
-                          disabled={!newColor || formData.colors.includes(newColor)}
-                        >
-                          Añadir
-                        </Button>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Gestión de Variantes */}
-                <ProductVariantsManager
-                  productId={parseInt(params.id)}
-                  availableSizes={formData.sizes}
-                  availableColors={formData.colors}
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gestión de Variantes</CardTitle>
+                    <CardDescription>
+                      Combina tallas, colores y stock para cada variante
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProductVariantsManager
+                      variants={formData.variants}
+                      onVariantsChange={(variants) => handleInputChange('variants', variants)}
+                      category={formData.category}
+                    />
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Columna Lateral */}
               <div className="space-y-6">
-                {/* Estado del Producto */}
+                {/* Resumen del Producto */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Estado del Producto</CardTitle>
+                    <CardTitle>Resumen</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isActive">Producto Activo</Label>
-                      <Switch
-                        id="isActive"
-                        checked={formData.isActive}
-                        onCheckedChange={(checked) => handleInputChange('isActive', checked)}
-                      />
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Stock Total:</span>
+                      <span className="font-medium">{calculateTotalStock()} unidades</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isFeatured">Producto Destacado</Label>
-                      <Switch
-                        id="isFeatured"
-                        checked={formData.isFeatured}
-                        onCheckedChange={(checked) => handleInputChange('isFeatured', checked)}
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Variantes:</span>
+                      <span className="font-medium">{formData.variants?.length || 0}</span>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* SEO */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>SEO</CardTitle>
-                    <CardDescription>
-                      Optimización para motores de búsqueda
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="slug">URL Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => handleInputChange('slug', e.target.value)}
-                        placeholder="tribu-mala-classic-black-hoodie"
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Imágenes:</span>
+                      <span className="font-medium">{formData.images?.filter(img => img).length || 0}</span>
                     </div>
-                    <div>
-                      <Label htmlFor="metaTitle">Meta Título</Label>
-                      <Input
-                        id="metaTitle"
-                        value={formData.metaTitle}
-                        onChange={(e) => handleInputChange('metaTitle', e.target.value)}
-                        placeholder="Tribu Mala Classic Black Hoodie - Premium Streetwear"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="metaDescription">Meta Descripción</Label>
-                      <Textarea
-                        id="metaDescription"
-                        value={formData.metaDescription}
-                        onChange={(e) => handleInputChange('metaDescription', e.target.value)}
-                        placeholder="Descripción para motores de búsqueda..."
-                        rows={3}
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Estado:</span>
+                      <span className={`text-sm font-medium ${
+                        formData.isActive ? 'text-green-600' : 'text-gray-500'
+                      }`}>
+                        {formData.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Vista Previa */}
-                {formData.image1 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Vista Previa</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                        <img
-                          src={formData.image1}
-                          alt={formData.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = '/placeholder.jpg'
-                          }}
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <h3 className="font-semibold line-clamp-1">{formData.name || 'Nombre del producto'}</h3>
-                        <p className="text-lg font-bold text-primary">
-                          {formData.price ? `${formData.price}` : '$0 MXN.00'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Vista Previa</h3>
+                  <ProductPreviewCard
+                    name={formData.name}
+                    price={formData.price}
+                    images={formData.images}
+                    category={formData.category}
+                    isActive={formData.isActive}
+                    stock={calculateTotalStock()}
+                  />
+                </div>
               </div>
             </div>
           </div>
