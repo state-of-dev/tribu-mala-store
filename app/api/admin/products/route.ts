@@ -93,46 +93,45 @@ export async function POST(request: NextRequest) {
       name,
       description,
       price,
-      stock,
-      image1,
-      image2,
-      image3,
+      images,
       category,
-      sizes,
-      colors,
-      slug,
-      metaTitle,
-      metaDescription,
-      isActive,
-      isFeatured
+      variants,
+      isActive
     } = body
 
     // Validar campos requeridos
-    if (!name || !price || !image1) {
+    if (!name || !price || !images || images.length === 0) {
       return NextResponse.json(
         { error: "Nombre, precio e imagen principal son requeridos" },
         { status: 400 }
       )
     }
 
-    // Crear producto
+    // Calcular stock total de las variantes
+    const totalStock = variants?.reduce((total: number, variant: any) => total + (variant.stock || 0), 0) || 0
+
+    // Crear producto con variantes
     const product = await prisma.product.create({
       data: {
         name,
         description,
         price: parseFloat(price),
-        stock: parseInt(stock) || 0,
-        image1,
-        image2,
-        image3,
+        stock: totalStock,
+        image1: images[0] || '',
+        image2: images[1] || null,
+        image3: images[2] || null,
         category,
-        sizes: sizes || [],
-        colors: colors || [],
-        slug,
-        metaTitle,
-        metaDescription,
         isActive: isActive !== false,
-        isFeatured: isFeatured === true
+        variants: {
+          create: variants?.map((variant: any) => ({
+            size: variant.size,
+            color: variant.color,
+            stock: parseInt(variant.stock) || 0
+          })) || []
+        }
+      },
+      include: {
+        variants: true
       }
     })
 

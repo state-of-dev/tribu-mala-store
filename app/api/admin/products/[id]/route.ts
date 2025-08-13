@@ -26,9 +26,12 @@ export async function GET(
       return NextResponse.json({ error: "Sin permisos de administrador" }, { status: 403 })
     }
 
-    // Obtener producto por ID
+    // Obtener producto por ID con variantes
     const product = await prisma.product.findUnique({
-      where: { id: parseInt(params.id) }
+      where: { id: parseInt(params.id) },
+      include: {
+        variants: true
+      }
     })
 
     if (!product) {
@@ -72,43 +75,70 @@ export async function PATCH(
       name,
       description,
       price,
-      stock,
-      image1,
-      image2,
-      image3,
+      images,
       category,
-      sizes,
-      colors,
-      slug,
-      metaTitle,
-      metaDescription,
-      isActive,
-      isFeatured
+      variants,
+      isActive
     } = body
 
-    // Preparar datos de actualización (solo campos proporcionados)
+    // Calcular stock total de las variantes
+    const totalStock = variants?.reduce((total: number, variant: any) => total + (variant.stock || 0), 0) || 0
+
+    // Preparar datos de actualización
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (description !== undefined) updateData.description = description
     if (price !== undefined) updateData.price = parseFloat(price)
-    if (stock !== undefined) updateData.stock = parseInt(stock)
-    if (image1 !== undefined) updateData.image1 = image1
-    if (image2 !== undefined) updateData.image2 = image2
-    if (image3 !== undefined) updateData.image3 = image3
+    if (images !== undefined) {
+      updateData.image1 = images[0] || ''
+      updateData.image2 = images[1] || null
+      updateData.image3 = images[2] || null
+    }
     if (category !== undefined) updateData.category = category
-    if (sizes !== undefined) updateData.sizes = sizes
-    if (colors !== undefined) updateData.colors = colors
-    if (slug !== undefined) updateData.slug = slug
-    if (metaTitle !== undefined) updateData.metaTitle = metaTitle
-    if (metaDescription !== undefined) updateData.metaDescription = metaDescription
     if (isActive !== undefined) updateData.isActive = isActive
-    if (isFeatured !== undefined) updateData.isFeatured = isFeatured
+    if (variants !== undefined) updateData.stock = totalStock
 
     // Actualizar producto
     const updatedProduct = await prisma.product.update({
       where: { id: parseInt(params.id) },
-      data: updateData
+      data: updateData,
+      include: {
+        variants: true
+      }
     })
+
+    // Actualizar variantes si se proporcionaron
+    if (variants !== undefined) {
+      // Eliminar variantes existentes
+      await prisma.productVariant.deleteMany({
+        where: { productId: parseInt(params.id) }
+      })
+
+      // Crear nuevas variantes
+      if (variants.length > 0) {
+        await prisma.productVariant.createMany({
+          data: variants.map((variant: any) => ({
+            productId: parseInt(params.id),
+            size: variant.size,
+            color: variant.color,
+            stock: parseInt(variant.stock) || 0
+          }))
+        })
+      }
+
+      // Obtener producto actualizado con variantes
+      const finalProduct = await prisma.product.findUnique({
+        where: { id: parseInt(params.id) },
+        include: {
+          variants: true
+        }
+      })
+
+      return NextResponse.json({
+        message: "Producto actualizado exitosamente",
+        product: finalProduct
+      })
+    }
 
     return NextResponse.json({
       message: "Producto actualizado exitosamente",

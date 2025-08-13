@@ -303,11 +303,19 @@ export function ImageManager({ images, onImagesChange, maxImages = 5 }: ImageMan
             id={`file-input-${index}`}
             type="file"
             accept="image/*"
+            multiple={index === 0}
             className="hidden"
             onChange={(e) => {
+              e.stopPropagation()
               const files = e.target.files
               if (files && files.length > 0) {
-                handleFileSelect(files[0], index)
+                if (index === 0) {
+                  // Imagen principal: manejar múltiples archivos
+                  handleMultipleFiles(files)
+                } else {
+                  // Slots individuales: manejar un solo archivo
+                  handleFileSelect(files[0], index)
+                }
               }
               e.target.value = ''
             }}
@@ -366,12 +374,16 @@ export function ImageManager({ images, onImagesChange, maxImages = 5 }: ImageMan
               ) : (
                 <>
                   <Upload className="h-8 w-8 text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
-                  <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                    Click para subir
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG, GIF hasta 10MB
-                  </p>
+                  {index === 0 ? (
+                    <>
+                      <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                        Click para subir
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecciona imágenes • PNG, JPG, GIF hasta 10MB
+                      </p>
+                    </>
+                  ) : null}
                 </>
               )}
             </div>
@@ -440,14 +452,6 @@ export function ImageManager({ images, onImagesChange, maxImages = 5 }: ImageMan
       )}
       
       {/* Input múltiple oculto para el área global */}
-      <input
-        id="global-multiple-file-input"
-        type="file"
-        multiple
-        accept="image/*"
-        className="hidden"
-        onChange={handleMultipleFileSelect}
-      />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Imagen Principal */}
@@ -464,20 +468,87 @@ export function ImageManager({ images, onImagesChange, maxImages = 5 }: ImageMan
         <div>
           <h3 className="text-sm font-medium mb-3">Imágenes Adicionales</h3>
           <div className="grid grid-cols-2 gap-3">
-            {images.slice(1).map((_, index) => (
-              <ImageUploadSlot 
-                key={index + 1} 
-                index={index + 1} 
-                isRequired={false}
-                showLabel={false}
-              />
-            ))}
+            {[1, 2, 3, 4].map((slotNumber) => {
+              const img = images[slotNumber]
+              const hasImage = img && img.trim() !== ''
+              
+              return (
+                <div key={slotNumber} className="relative aspect-square">
+                  {hasImage ? (
+                    <>
+                      <img 
+                        src={img} 
+                        alt={`Imagen adicional ${slotNumber}`}
+                        className="w-full h-full object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 h-6 w-6 p-0 bg-red-500/10 border-red-500/20 text-red-600 hover:bg-red-500/20 hover:text-red-700"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeImage(slotNumber)
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer group hover:border-primary hover:bg-primary/5 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          document.getElementById(`file-input-${slotNumber}`)?.click()
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          const files = e.dataTransfer.files
+                          if (files.length > 0) {
+                            handleFileSelect(files[0], slotNumber)
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                        }}
+                        onDragEnter={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                        }}
+                      >
+                        <div className="text-center text-muted-foreground/50 group-hover:text-primary/70 transition-colors">
+                          <ImageIcon className="h-6 w-6 mx-auto mb-1" />
+                          <p className="text-xs">{slotNumber}</p>
+                        </div>
+                      </div>
+                      <input
+                        id={`file-input-${slotNumber}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          if (e.target.files?.[0]) {
+                            handleFileSelect(e.target.files[0], slotNumber)
+                          }
+                          // Limpiar el input para permitir seleccionar el mismo archivo de nuevo
+                          e.target.value = ''
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
       
       <div className="text-xs text-muted-foreground flex justify-between items-center">
-        <span>{images.filter(img => img).length} de {maxImages} imágenes • La primera imagen es obligatoria</span>
+        <span>{images.filter(img => img).length} de {maxImages} imágenes • Click en imagen principal para seleccionar múltiples</span>
         {uploading.length > 0 && (
           <span className="text-blue-600">Subiendo {uploading.length} imagen{uploading.length > 1 ? 'es' : ''}...</span>
         )}

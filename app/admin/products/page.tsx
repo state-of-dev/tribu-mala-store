@@ -33,11 +33,13 @@ import {
   Star,
   Filter,
   CheckCircle,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react"
 import { useAdminProducts } from "@/hooks/use-cached-fetch"
 import { useSmoothLoading } from "@/hooks/use-smooth-loading"
 import { FadeIn, StaggerContainer } from "@/components/ui/fade-in"
+import { useAlertModal } from "@/components/ui/alert-modal"
 
 interface Product {
   id: number
@@ -67,6 +69,8 @@ export default function AdminProducts() {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const { showAlert, showConfirm, AlertModalComponent } = useAlertModal()
 
   // Usar el hook optimizado con cache
   const { 
@@ -100,6 +104,42 @@ export default function AdminProducts() {
     if (stock === 0) return 'bg-red-500/10 text-red-500 border-red-500/20'
     if (stock <= 5) return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
     return 'bg-green-500/10 text-green-500 border-green-500/20'
+  }
+
+  const handleDeleteProduct = (productId: number, productName: string) => {
+    showConfirm(
+      "Confirmar eliminación",
+      `¿Estás seguro de que quieres eliminar "${productName}"? Esta acción no se puede deshacer.`,
+      async () => {
+        try {
+          setDeletingId(productId)
+          
+          const response = await fetch(`/api/admin/products/${productId}`, {
+            method: 'DELETE'
+          })
+
+          if (!response.ok) {
+            throw new Error('Error al eliminar el producto')
+          }
+
+          const result = await response.json()
+
+          // Invalidar cache y refrescar lista
+          invalidateCache()
+          await fetchProducts()
+
+          showAlert("¡Éxito!", result.message || 'Producto eliminado exitosamente')
+        } catch (error) {
+          console.error('Error al eliminar producto:', error)
+          showAlert("Error", "Hubo un problema al eliminar el producto. Inténtalo de nuevo.", "Aceptar", "destructive")
+        } finally {
+          setDeletingId(null)
+        }
+      },
+      "Eliminar",
+      "Cancelar",
+      "destructive"
+    )
   }
 
   // Memoizar el filtrado para evitar recálculos innecesarios
@@ -451,16 +491,21 @@ export default function AdminProducts() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                disabled={deletingId === product.id}
                                 className="transition-all duration-200 hover:scale-105 active:scale-95 hover:border-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => {
-                                  if (confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) {
-                                    // TODO: Implementar eliminación
-                                    console.log('Eliminar producto:', product.id)
-                                  }
-                                }}
+                                onClick={() => handleDeleteProduct(product.id, product.name)}
                               >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Eliminar
+                                {deletingId === product.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    Eliminando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Eliminar
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -476,6 +521,7 @@ export default function AdminProducts() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      <AlertModalComponent />
     </div>
   )
 }

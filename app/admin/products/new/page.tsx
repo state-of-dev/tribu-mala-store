@@ -58,7 +58,7 @@ export default function NewProduct() {
     name: '',
     description: '',
     price: '',
-    images: [''], // Imagen principal vacía inicialmente
+    images: Array(5).fill(''), // 5 slots: 1 principal + 4 adicionales
     category: '',
     variants: [],
     isActive: true
@@ -185,12 +185,9 @@ export default function NewProduct() {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        image1: formData.images[0] || '',
-        image2: formData.images[1] || '',
-        image3: formData.images[2] || '',
+        images: formData.images.filter(img => img && img.trim() !== ''), // Solo enviar imágenes no vacías
         category: formData.category,
         isActive: formData.isActive,
-        stock: calculateTotalStock(), // Stock calculado automáticamente
         variants: formData.variants
       }
 

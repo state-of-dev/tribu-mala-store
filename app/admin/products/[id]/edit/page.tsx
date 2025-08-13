@@ -289,16 +289,11 @@ export default function EditProduct({ params }: { params: { id: string } }) {
       const productData = data.product
       
       setProduct(productData)
-      // Convertir imágenes a array - asegurar que al menos tengamos un slot vacío
-      const images = []
-      if (productData.image1) images.push(productData.image1)
-      if (productData.image2) images.push(productData.image2)
-      if (productData.image3) images.push(productData.image3)
-      
-      // Asegurar que tenemos al menos un slot para imagen principal
-      if (images.length === 0) {
-        images.push('')
-      }
+      // Convertir imágenes a array - asegurar que tengamos exactamente 5 slots
+      const images = Array(5).fill('')
+      if (productData.image1) images[0] = productData.image1
+      if (productData.image2) images[1] = productData.image2
+      if (productData.image3) images[2] = productData.image3
       
       setFormData({
         name: productData.name || '',
@@ -343,12 +338,9 @@ export default function EditProduct({ params }: { params: { id: string } }) {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        image1: formData.images[0] || '',
-        image2: formData.images[1] || '',
-        image3: formData.images[2] || '',
+        images: formData.images.filter(img => img && img.trim() !== ''), // Solo enviar imágenes no vacías
         category: formData.category,
         isActive: formData.isActive,
-        stock: calculateTotalStock(), // Stock calculado automáticamente
         variants: formData.variants
       }
 
