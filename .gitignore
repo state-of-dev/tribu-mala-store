@@ -1,5 +1,5 @@
 .claude/
-zdocs/
+context/
 
 # dependencies
 /node_modules
@@ -29,3 +29,6 @@ next-env.d.ts
 /lib/generated/prisma
 
 .vercel
+
+scripts/
+docs/
