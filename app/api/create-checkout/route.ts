@@ -113,12 +113,10 @@ export async function POST(request: Request) {
 
     // Create a Stripe checkout session with advanced options
     const session = await stripe.checkout.sessions.create({
-      // 1. MÉTODOS DE PAGO - Más opciones
+      // 1. MÉTODOS DE PAGO - Solo métodos soportados en México
       payment_method_types: [
         "card",           // Tarjetas de crédito/débito
         "oxxo",          // OXXO (México)
-        "bancontact",    // Bancontact (Europa)
-        "ideal",         // iDEAL (Países Bajos)
       ],
 
       // 2. PRODUCTOS CON INFORMACIÓN COMPLETA
@@ -218,7 +216,7 @@ export async function POST(request: Request) {
       },
       payment_intent_data: {
         capture_method: "automatic", // Capturar pago inmediatamente
-        setup_future_usage: "on_session", // Guardar método de pago para futuras compras
+        // setup_future_usage: "on_session", // ❌ No compatible con OXXO - removido
         statement_descriptor: "TRIBU MALA STORE", // Aparece en estado de cuenta
         statement_descriptor_suffix: orderNumber.slice(-8), // Sufijo con número de orden
       },
@@ -250,9 +248,9 @@ export async function POST(request: Request) {
       },
 
       // 13. CONFIGURACIÓN ADICIONAL DE EXPERIENCIA
-      consent_collection: {
-        terms_of_service: "required", // Requerir aceptación de términos
-      },
+      // consent_collection: {
+      //   terms_of_service: "required", // Requiere configurar URL de términos en Stripe Dashboard
+      // },
       
       // 14. CONFIGURACIÓN DE MÉTODOS DE PAGO POR PAÍS
       payment_method_configuration: undefined, // Usar configuración por defecto optimizada
