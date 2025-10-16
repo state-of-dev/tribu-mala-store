@@ -31,4 +31,4 @@ next-env.d.ts
 .vercel
 
 scripts/
-docs/
+context/

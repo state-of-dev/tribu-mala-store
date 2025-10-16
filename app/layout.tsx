@@ -26,6 +26,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Tribu Mala - Streetwear Premium | Ropa Underground de Calidad",
   description: "Streetwear premium para la nueva generación rebelde. Calidad superior, estilo underground, actitud sin límites.",
+  icons: {
+    icon: '/logo-tribu.png',
+  },
     generator: 'v0.dev'
 }
 
